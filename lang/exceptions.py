@@ -45,8 +45,8 @@ class TranspilerExceptions:
         def __init__(self, mode):
             Exception.__init__(self, f"Got unknown action mode '{mode}'")
     class UnkownMethodReference(Exception):
-        def __init__(self, func, funcs):
-            Exception.__init__(self, f"Got unknown function '{func}', from '{funcs}'")
+        def __init__(self, func, funcs, ns='Nil'):
+            Exception.__init__(self, f"Got unknown function '{func}' ({ns}), from '{funcs}'")
     class ActionRequiredButNotFound(Exception):
         def __init__(self, act, acts):
             Exception.__init__(self, f"An action '{act}' is required for this task. But only {list(acts.keys())} are installed")

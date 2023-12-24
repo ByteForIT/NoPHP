@@ -14,7 +14,7 @@ fn main() -> PyResult<()> {
         let app: Py<PyAny> = PyModule::from_code(py, py_app, "", "")?
             .getattr("run")?
             .into();
-        app.call1(py, PyTuple::new(py, vec![args[0]]))
+        app.call1(py, PyTuple::new(py, vec![args[1].clone()]))
     });
 
     println!("py: {}", from_python?);

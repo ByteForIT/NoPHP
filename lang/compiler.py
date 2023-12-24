@@ -64,20 +64,6 @@ class Compiler:
             namespaces = namespaces,
         )
 
-        # Update functions
-        # if sync == "advanced":
-        #     for func in self.functions:
-        #         print(f"Copying {func}")
-        #         f = deepcopy(self.functions[func]["object"])
-        #         instance.functions[func] = {
-        #             "object": f,
-        #             "source": self.functions[func]["source"],
-        #             "run_func": f.run,
-        #             "returns": self.functions[func]["returns"],
-        #             "arguments": self.functions[func]["arguments"],
-        #             "level": self.functions[func]["level"]
-        #         }
-
         Compiler.populate_modules_actions(
             instance,
             self.raw_modules
@@ -285,3 +271,10 @@ class Compiler:
                 "source": source,
                 "parent": parent
             }
+        
+    
+    def __str__(self) -> str:
+        return f"NS::{self.namespace}"
+    
+    def __repr__(self) -> str:
+        return self.__str__()

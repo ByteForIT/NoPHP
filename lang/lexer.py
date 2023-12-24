@@ -167,5 +167,11 @@ class PyettyLexer(Lexer):
         self.lineno += len(t.value)
 
 
-def run():
-    return "a"
+lexer = Lexer()
+
+def run(file):
+    toks = []
+    with open(file, "r") as f:
+        text = f.read()
+        toks = lexer.tokenize(text)
+    return list(toks)

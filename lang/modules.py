@@ -823,7 +823,7 @@ class FunctionCallMod(Module):
                     raise TranspilerExceptions.TypeMissmatch(f"{funcname}(...) return value", ret, exp, tree['ID'][-1])
                 done = ret
         else:
-            raise TranspilerExceptions.UnkownMethodReference(funcname, list(self.compiler_instance.functions.keys()))
+            raise TranspilerExceptions.UnkownMethodReference(funcname, list(self.compiler_instance.functions.keys()), self.compiler_instance.namespace)
         
         return done
 
