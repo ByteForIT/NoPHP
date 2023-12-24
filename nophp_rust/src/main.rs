@@ -1,13 +1,19 @@
-use pyo3::{types::IntoPyDict, PyResult, Python};
+use pyo3::prelude::*;
 
 fn main() -> PyResult<()> {
-    Python::with_gil(|py| {
-        let sys = py.import("sys")?;
-        let version: String = sys.getattr("version")?.extract()?;
-        let locals = [("os", py.import("os")?)].into_py_dict(py);
-        let code = "os.getenv('USER') or os.getenv('USERNAME') or 'Unknown'";
-        let user: String = py.eval(code, None, Some(&locals))?.extract()?;
-        println!("Hello {}, I'm Python {}", user, version);
-        Ok(())
-    })
+    let py_foo = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../lang/lexer.py"
+    ));
+    let py_app = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../lang/lexer.py"));
+    let from_python = Python::with_gil(|py| -> PyResult<Py<PyAny>> {
+        PyModule::from_code(py, py_foo, "lexer", "lexer")?;
+        let app: Py<PyAny> = PyModule::from_code(py, py_app, "", "")?
+            .getattr("run")?
+            .into();
+        app.call0(py)
+    });
+
+    println!("py: {}", from_python?);
+    Ok(())
 }
