@@ -6,4 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pyo3 = { version = "0.20.0", features = ["auto-initialize"] }
+pyo3 = { version = "0.20.0", features = ["auto-initialize", "serde"] }
+serde = "1.0.0"
+serde_json = "1.0.0"
+pythonize = "0.20.0"
