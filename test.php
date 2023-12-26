@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App;
 
@@ -97,7 +97,7 @@ class Android extends Robot
 {
     public function __construct()
     {
-        ? debug;
+        // ? debug;
         $this->greeting = "Hi!";
     }
 
@@ -106,7 +106,7 @@ class Android extends Robot
 // Instead of this
 // debug_print_backtrace();
 // Use this
-?debug;
+// ?debug;
 
 $robot = new Robot();
 $a = $robot->greet(); // Hello
@@ -127,12 +127,12 @@ use Example;
 echo Example\greet();
 
 class YourApp {
-    private $greeting;
+    public $greeting;
     public function __construct() {
         $this->greeting = "Welcome to NoPHP";
     } 
     public function welcome() {
-        echo <h1> $this->greeting </h1>;
+        echo "<h1>" . $this->greeting . "</h1>";
     }
 }
 $app = new YourApp();

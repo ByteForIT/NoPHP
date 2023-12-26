@@ -10,6 +10,7 @@ class PyettyLexer(Lexer):
         CLASS,
         NAMESPACE,
         STRING,
+        MULTILINE_STRING,
         EQ_GREATER,
         EQ_LESS,
         EQEQ,
@@ -103,6 +104,7 @@ class PyettyLexer(Lexer):
     PYTHON_CODE = r"\$`[.\W\w]*?`"
     PYTHON_CODE_EXEC = r"\$e`[.\W\w]*?`"
     STRING = r"(\".*?(?<!\\)(\\\\)*\"|'.*?(?<!\\)(\\\\)*')" #r'"[\s\S]*?"' 
+    MULTILINE_STRING = r"(`(?:[^`\\]|\\.)*`)"
     CHAR = r"'[\s\S]*?'"
     ID = r"(--[a-zA-Z_]([a-zA-Z0-9_]|!)*--|[a-zA-Z_]([a-zA-Z0-9_]|!)*)"
     PHPSTART = r"<\?php"
@@ -165,13 +167,3 @@ class PyettyLexer(Lexer):
     @_(r"\n+")
     def ignore_newline(self, t):
         self.lineno += len(t.value)
-
-
-lexer = Lexer()
-
-def run(file):
-    toks = []
-    with open(file, "r") as f:
-        text = f.read()
-        toks = lexer.tokenize(text)
-    return list(toks)

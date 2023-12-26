@@ -44,6 +44,8 @@ class Compiler:
         # Keep track of previous module run
         self.prev = None
 
+        self.persistent = False
+
     def new_instance(
         self,
         tree = None,
@@ -52,15 +54,15 @@ class Compiler:
         variables = {},
         functions = {},
         classes = {},
-        sync = None
+        sync = ""
     ):
         # Modules and actions need to be recreated with a new scope
         instance = Compiler(
             tree = tree,
             namespace = namespace,
-            variables = deepcopy(self.variables) if sync == "advanced" else variables,
-            functions = deepcopy(self.functions) if sync == "advanced" else functions,
-            classes = self.classes if sync == "class" else classes,
+            variables = self.variables if sync == "object" else deepcopy(self.variables),
+            functions = self.functions.copy() if sync == "advanced" else {},
+            classes = self.classes if sync in ("class", "object") else {},
             namespaces = namespaces,
         )
 
@@ -122,6 +124,10 @@ class Compiler:
         # Update: 24-12-23
         # Issue has been fixed, the issue was in how the objects were being created.
         # NEVER use deep copy for complex structures.....
+        # Update: 25-12-23
+        # The issue was not fixed... Scopes are still broken
+        # Update 26-12-23
+        # The issue has been resolved :pain: hopefully for real this time
         self.raw_modules = Modules
         for module in Modules:
             modobj: Module = module(self)
@@ -183,7 +189,10 @@ class Compiler:
                             line_numbers=True
                         )
                     )
-                    exit(1)
+                    if self.persistent:
+                        raise e
+                    else:
+                        exit(1)
             else:
                 print(code)
                 raise TranspilerExceptions.UnknownActionReference(action[0])
@@ -262,7 +271,7 @@ class Compiler:
     ) -> None:
         if name in self.classes and not force:
             print(f"At {self.line}")
-            raise TranspilerExceptions.VarExists(name)
+            raise TranspilerExceptions.ClassExists(name, clss=self.classes)
         
         obj.parent = parent
         
@@ -278,3 +287,15 @@ class Compiler:
     
     def __repr__(self) -> str:
         return self.__str__()
+    
+    def clean(self):
+        self = Compiler([])
+        self.variables = {}
+        self.functions = {}
+        self.classes = {}
+        self.finished = []
+        self.code = []
+        self.namespaces = {}
+        self.namespace = 'main'
+        self.parent = None
+        return self

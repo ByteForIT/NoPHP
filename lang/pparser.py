@@ -1,6 +1,7 @@
 from sly import Parser
 from sly.yacc import YaccProduction, YaccSymbol
 import logging
+
 from .lexer import PyettyLexer
 
 class PyettyParser(Parser):
@@ -387,6 +388,14 @@ class PyettyParser(Parser):
             {"FUNCTION_ARGUMENTS": p.function_arguments, "ID": p.expression},
         )
 
+    @_("expression '(' function_arguments ')'")
+    def function_call(self, p):
+        return (
+            "FUNCTION_CALL",
+            {"FUNCTION_ARGUMENTS": p.function_arguments, "ID": p.expression},
+        )
+
+
     @_("expression '$' ID '=' expression ';'")
     def function_call(self, p):
         return (
@@ -766,13 +775,13 @@ class PyettyParser(Parser):
     def while_loop(self, p):
         return ("WHILE", {"PROGRAM": p.program, "CONDITION": p.expression}, p.lineno)
 
-    @_("positional_args ',' expression")
-    def positional_args(self, p):
-        return p.positional_args + (p.expression,)
-
     @_("expression '.' expression")
     def expression(self, p):
         return ("CONCAT", {"0": p.expression0, "1": p.expression1})
+
+    @_("positional_args ',' expression")
+    def positional_args(self, p):
+        return p.positional_args + (p.expression,)
     
     @_("expression")
     def positional_args(self, p):
@@ -1121,9 +1130,9 @@ class PyettyParser(Parser):
     def expression(self, p):
         return p._list
 
-    @_("_numpy")
-    def expression(self, p):
-        return p._numpy
+    # @_("_numpy")
+    # def expression(self, p):
+    #     return p._numpy
 
     @_("assoc_array")
     def expression(self, p):
@@ -1181,33 +1190,34 @@ class PyettyParser(Parser):
     def _list(self, p):
         return ("ARRAY_FILLED", {"ITEMS": p.positional_args})
 
-    @_("'(' items ')'")
-    def _numpy(self, p):
-        return ("NUMPY", {"ITEMS": p.items})
+    # @_("'(' items ')'")
+    # def _numpy(self, p):
+    #     return ("ARRAY_FILLED", {"ITEMS": p.items})
 
-    @_("'(' items ',' ')'")
-    def _numpy(self, p):
-        return ("NUMPY", {"ITEMS": p.items})
+    # @_("'(' items ',' ')'")
+    # def _numpy(self, p):
+    #     return ("ARRAY_FILLED", {"ITEMS": p.items})
 
-    @_("'(' expression ',' ')'")
-    def _numpy(self, p):
-        return ("NUMPY", {"ITEMS": (p.expression,)})
+    # @_("'(' expression ',' ')'")
+    # def _numpy(self, p):
+    #     return ("ARRAY_FILLED", {"ITEMS": (p.expression,)})
 
-    @_("'(' ')'")
-    def _numpy(self, p):
-        return ("NUMPY", {"ITEMS": ()})
+    # @_("'(' ')'")
+    # def _numpy(self, p):
+    #     return ("ARRAY_FILLED", {"ITEMS": ()})
 
-    @_("'(' ',' ')'")
-    def _numpy(self, p):
-        return ("NUMPY", {"ITEMS": ()})
+    # @_("'(' ',' ')'")
+    # def _numpy(self, p):
+    #     return ("ARRAY_FILLED", {"ITEMS": ()})
 
     @_("items ',' expression")
     def items(self, p):
         return p.items + (p.expression,)
 
+    # TODO: FIX THIS
     @_("expression ',' expression")
     def items(self, p):
-        return (p.expression,)
+        return (p.expression0,)
 
     @_("INT")
     def int(self, p):
@@ -1220,6 +1230,10 @@ class PyettyParser(Parser):
     @_("STRING")
     def string(self, p):
         return ("STRING", {"VALUE": p.STRING[1:-1]})
+
+    @_("MULTILINE_STRING")
+    def string(self, p):
+        return ("STRING", {"VALUE": p.MULTILINE_STRING[1:-1]})
 
     @_("FLOAT")
     def float(self, p):
@@ -1256,3 +1270,16 @@ class PyettyParser(Parser):
     # Intermediate expression END
     ###########################################################################
     # Syntax error START
+
+
+
+lexer = PyettyLexer()
+parser = PyettyParser()
+
+def run(file):
+    toks = []
+    with open(file, "r") as f:
+        text = f.read()
+        toks = lexer.tokenize(text)
+    ast = parser.parse(toks)
+    return ast 

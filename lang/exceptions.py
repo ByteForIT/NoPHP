@@ -1,3 +1,6 @@
+from rich.console import Console
+console = Console()
+
 class TranspilerExceptions:
     class NamespaceNotFound(Exception):
         def __init__(self, namespace, namespaces):
@@ -21,8 +24,8 @@ class TranspilerExceptions:
         def __init__(self, var):
             Exception.__init__(self, f"Got '{var}'. This variable already exists in this scope")
     class ClassExists(Exception):
-        def __init__(self, cls):
-            Exception.__init__(self, f"Got '{cls}'. This class already exists in this scope")
+        def __init__(self, cls, clss=[]):
+            Exception.__init__(self, f"Got '{cls}'. This class already exists in this scope. {clss}")
     class ClassNotFound(Exception):
         def __init__(self, cls):
             Exception.__init__(self, f"Got '{cls}'. No such class exists within this scope")
@@ -69,3 +72,8 @@ class ModuleExceptions:
     class InvalidModuleConstruction(Exception):
         def __init__(self, module):
             Exception.__init__(self, f"[Module:{module.name}] Invalid arguments supplied to constructor")
+
+
+def Warn(msg):
+    print("Warning", end="")
+    console.log(f"[red]{msg}[/red]")

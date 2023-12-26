@@ -1,0 +1,791 @@
+     PHP,
+     {
+         'PROGRAM':          NAMESPACE,
+         {
+             'ID':  App,
+         },
+         3,
+         CLASS_DECLARATION,
+         {
+             'ID':  Router,
+             'PROGRAM':  ('('FUNCTION_DECLARATION', {'FUNCTION_ARGUMENTS': {}, 'ID': '__construct', 'LEVEL': 'public', 'PROGRAM': (('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'Im init!'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 7)}), ('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': '<br>'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 8)}))}, 6)', (
+     FUNCTION_DECLARATION,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':  myFunction,
+         'LEVEL':  public,
+         'PROGRAM':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      Hello from inside myFunction in class Router!,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             11,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      <br>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             12,
+     },
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  returns,
+             'EXPRESSION':  ('INT', {
+     'VALUE':      10,
+ },
+         },
+         13,
+         RETURN,
+         {
+             'EXPRESSION':      ID,
+     {
+         'VALUE':  returns,
+     },
+     14,
+         },
+         14,
+         'RETURNS_TYPE':      ID,
+     {
+         'VALUE':  int,
+     },
+     10,
+     },
+     10,
+ )),
+         },
+         5,
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+     'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  id,
+     },
+     18,
+ },
+             'ID':  RunTests,
+             'PROGRAM':          VARIABLE_ASSIGNMENT,
+         {
+             'ID':  hello,
+             'EXPRESSION':  ('STRING', {
+     'VALUE':      Hello ,
+ },
+         },
+         19,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  example_html,
+             'EXPRESSION':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          <h1>,
+     },
+     '1':      ('CONCAT', {
+         '0':              ID,
+             {
+                 'VALUE':  hello,
+             },
+             21,
+         '1':          ('CONCAT', {
+             '0':              ('STRING', {
+                 'VALUE':                  World,
+             },
+             '1':              ('STRING', {
+                 'VALUE':                  </h1>,
+             },
+         },
+     },
+ },
+         },
+         21,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  example_html,
+     },
+     23,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             23,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      <code>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             25,
+     },
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  ExampleFunction,
+             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'I return: '}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 28)})', (
+     RETURN,
+     {
+         'EXPRESSION':  ('INT', {
+     'VALUE':      1,
+ },
+     },
+     29,
+ )),
+             'RETURNS_TYPE':      ID,
+     {
+         'VALUE':  int,
+     },
+     27,
+         },
+         27,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  hi,
+             'EXPRESSION':      FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      ID,
+     {
+         'VALUE':  ExampleFunction,
+     },
+     32,
+     },
+     32,
+         },
+         32,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  hi,
+     },
+     34,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             34,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      <br>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             36,
+     },
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  router,
+             'EXPRESSION':      NEW_OBJECT,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      ID,
+     {
+         'VALUE':  Router,
+     },
+     38,
+     },
+     38,
+         },
+         38,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  b,
+             'EXPRESSION':      FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':  myFunction,
+         'CLASS':  router,
+     },
+     41,
+         },
+         41,
+         CONDITIONAL,
+         {
+             'IF':      IF,
+     {
+         'CODE':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'If works'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 45)})', (
+     FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+     'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      <br>,
+ },
+ },
+         'ID':      ID,
+     {
+         'VALUE':  echo,
+     },
+     46,
+     },
+ )),
+         'CONDITION':      EQEQ,
+         ID,
+         {
+             'VALUE':  b,
+         },
+         44,
+     ('INT', {
+         'VALUE':          10,
+     },
+     },
+     44,
+             'ELSE_IF':  ('None', None),
+             'ELSE':      ELSE,
+     {
+         'CODE':  ('FUNCTION_CALL', {
+     'FUNCTION_ARGUMENTS':      {
+         'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      If failed,
+ },
+     },
+     'ID':          ID,
+         {
+             'VALUE':  echo,
+         },
+         48,
+ },
+     },
+     47,
+         },
+         44,
+         WHILE,
+         {
+             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('ID', {'VALUE': 'b'}, 54),)}, 'ID': ('ID', {'VALUE': 'echo'}, 54)})', (
+     VARIABLE_ASSIGNMENT,
+     {
+         'ID':  b,
+         'EXPRESSION':      ADD,
+         ID,
+         {
+             'VALUE':  b,
+         },
+         55,
+     ('INT', {
+         'VALUE':          1,
+     },
+     },
+     55,
+ )),
+             'CONDITION':      NOT_EQEQ,
+         ID,
+         {
+             'VALUE':  b,
+         },
+         53,
+     ('INT', {
+         'VALUE':          10,
+     },
+         },
+         53,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  array,
+             'EXPRESSION':  ('ARRAY_FILLED', {
+     'ITEMS':          ('STRING', {
+             'VALUE':              Hello,
+         },
+         ('STRING', {
+             'VALUE':              World,
+         },
+         ('STRING', {
+             'VALUE':              three,
+         },
+ },
+         },
+         58,
+         FOREACH,
+         {
+             'ITERABLE':      ID,
+     {
+         'VALUE':  array,
+     },
+     61,
+             'VARIABLE':      ID,
+     {
+         'VALUE':  value,
+     },
+     61,
+             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('ID', {'VALUE': 'value'}, 62),)}, 'ID': ('ID', {'VALUE': 'echo'}, 62)})', (
+     FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+     'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      <br>,
+ },
+ },
+         'ID':      ID,
+     {
+         'VALUE':  echo,
+     },
+     63,
+     },
+ )),
+         },
+         61,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      </code>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             66,
+     },
+             'RETURNS_TYPE':      ID,
+     {
+         'VALUE':  void,
+     },
+     18,
+         },
+         18,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('INT', {
+     'VALUE':      1,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  RunTests,
+             },
+             69,
+     },
+         CLASS_DECLARATION,
+         {
+             'ID':  Robot,
+             'PROGRAM':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  greeting,
+     },
+     73,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  public,
+             },
+             73,
+     },
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  __construct,
+             'LEVEL':  public,
+             'PROGRAM':      VARIABLE_ASSIGNMENT,
+     {
+         'ID':  greeting,
+         'PARENT':  this,
+         'EXPRESSION':  ('STRING', {
+     'VALUE':      Hello,
+ },
+     },
+     78,
+         },
+         76,
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  greet,
+             'LEVEL':  public,
+             'PROGRAM':      RETURN,
+     {
+         'EXPRESSION':      TARROW,
+     {
+         'FROM':  this,
+         'TO':  greeting,
+     },
+     83,
+     },
+     83,
+         },
+         81,
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  bye,
+             'LEVEL':  public,
+             'PROGRAM':      RETURN,
+     {
+         'EXPRESSION':  ('STRING', {
+     'VALUE':      Good bye!,
+ },
+     },
+     88,
+         },
+         86,
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  wrap,
+             'LEVEL':  public,
+             'PROGRAM':  ('FUNCTION_CALL', {
+     'FUNCTION_ARGUMENTS':      {
+         'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      +++++++,
+ },
+     },
+     'ID':          ID,
+         {
+             'VALUE':  echo,
+         },
+         92,
+ },
+         },
+         90,
+         },
+         71,
+         CLASS_DECLARATION,
+         {
+             'ID':  Android,
+             'EXTENDS':  Robot,
+             'PROGRAM':      FUNCTION_DECLARATION,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':  __construct,
+         'LEVEL':  public,
+         'PROGRAM':      VARIABLE_ASSIGNMENT,
+     {
+         'ID':  greeting,
+         'PARENT':  this,
+         'EXPRESSION':  ('STRING', {
+     'VALUE':      Hi!,
+ },
+     },
+     101,
+     },
+     98,
+         },
+         96,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  robot,
+             'EXPRESSION':      NEW_OBJECT,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      ID,
+     {
+         'VALUE':  Robot,
+     },
+     111,
+     },
+     111,
+         },
+         111,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  a,
+             'EXPRESSION':      FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':  greet,
+         'CLASS':  robot,
+     },
+     112,
+         },
+         112,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Robot: ,
+     },
+     '1':      ('CONCAT', {
+         '0':              ID,
+             {
+                 'VALUE':  a,
+             },
+             113,
+         '1':          ('CONCAT', {
+             '0':              ('STRING', {
+                 'VALUE':                   Expected: ,
+             },
+             '1':                  TARROW,
+                 {
+                     'FROM':  robot,
+                     'TO':  greeting,
+                 },
+                 113,
+         },
+     },
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             113,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      </br>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             114,
+     },
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  android,
+             'EXPRESSION':      NEW_OBJECT,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      ID,
+     {
+         'VALUE':  Android,
+     },
+     117,
+     },
+     117,
+         },
+         117,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  b,
+             'EXPRESSION':      FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':  greet,
+         'CLASS':  android,
+     },
+     118,
+         },
+         118,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Android: ,
+     },
+     '1':      ('CONCAT', {
+         '0':              ID,
+             {
+                 'VALUE':  b,
+             },
+             119,
+         '1':          ('CONCAT', {
+             '0':              ('STRING', {
+                 'VALUE':                   Expected: ,
+             },
+             '1':                  TARROW,
+                 {
+                     'FROM':  android,
+                     'TO':  greeting,
+                 },
+                 119,
+         },
+     },
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             119,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      </br>,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             120,
+     },
+         FUNCTION_CALL,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  bye,
+             'CLASS':  android,
+         },
+         121,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      example.php,
+ },
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  require_once,
+             },
+             123,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  Example,
+     },
+     125,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  use,
+             },
+             125,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      FUNCTION_CALL,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      NAMESPACE_MEMBER,
+     {
+         'NAMESPACE':  Example,
+         'MEMBER':  greet,
+     },
+     127,
+     },
+     127,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             127,
+     },
+         CLASS_DECLARATION,
+         {
+             'ID':  YourApp,
+             'PROGRAM':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  greeting,
+     },
+     130,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  public,
+             },
+             130,
+     },
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  __construct,
+             'LEVEL':  public,
+             'PROGRAM':      VARIABLE_ASSIGNMENT,
+     {
+         'ID':  greeting,
+         'PARENT':  this,
+         'EXPRESSION':  ('STRING', {
+     'VALUE':      Welcome to NoPHP,
+ },
+     },
+     132,
+         },
+         131,
+         FUNCTION_DECLARATION,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  welcome,
+             'LEVEL':  public,
+             'PROGRAM':  ('FUNCTION_CALL', {
+     'FUNCTION_ARGUMENTS':      {
+         'POSITIONAL_ARGS':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          <h1>,
+     },
+     '1':      ('CONCAT', {
+         '0':              TARROW,
+             {
+                 'FROM':  this,
+                 'TO':  greeting,
+             },
+             135,
+         '1':          ('STRING', {
+             'VALUE':              </h1>,
+         },
+     },
+ },
+     },
+     'ID':          ID,
+         {
+             'VALUE':  echo,
+         },
+         135,
+ },
+         },
+         134,
+         },
+         129,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  app,
+             'EXPRESSION':      NEW_OBJECT,
+     {
+         'FUNCTION_ARGUMENTS':  {
+ },
+         'ID':      ID,
+     {
+         'VALUE':  YourApp,
+     },
+     138,
+     },
+     138,
+         },
+         138,
+         FUNCTION_CALL,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  welcome,
+             'CLASS':  app,
+         },
+         139,
+     },
+     1,

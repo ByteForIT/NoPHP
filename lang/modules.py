@@ -2,7 +2,8 @@ from copy import deepcopy
 import inspect
 import pprint
 
-from lang.exceptions import ModuleExceptions, TranspilerExceptions, RuntimeExceptions
+from lang.exceptions import ModuleExceptions, TranspilerExceptions, RuntimeExceptions, Warn
+from lang.module import Module
 from splitter import split_php
 
 from .lexer import PyettyLexer
@@ -23,77 +24,6 @@ def rprint(data):
         )
     )
 
-class Module:
-    BUILT_TYPE = str
-    class MODULE_TYPES:
-        '''
-        FUNCTION -> Function module type
-        ACTION   -> Internal action used in processing
-        '''
-        FUNCTION = "Function" 
-        ACTION   = "Action"
-        SPECIAL_ACTION = "Special Action"
-        SPECIAL_ACTION_FUNC = "Special Action Function"
-        NON_WRITEABLE = "Something that shouldnt need to be written to the output"
-
-    def __init__(
-        self,
-        #type: MODULE_TYPES
-    ):
-        self.type = "Unknown"
-        self.built = ""
-        self.template = ""
-        self.o1 = False
-        self.o2 = False
-        self.o3 = False
-
-    def __call__(
-        self,
-        tree,
-        no_construct = False
-    ):
-
-        _values = self.proc_tree(tree)
-        self.no_construct = no_construct
-        self.override()
-        return _values
-    
-    # Future
-    #def optimise(self): pass
-    optimise = None
-
-    def remove_quotes(_,s):
-        if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
-            return s.strip('"')
-    
-        return s
-
-    # Future: Return true for now
-    def verify(self): return True
-
-    def override(self):
-        """
-        Warning: this should be used with caution since it bypasses the default build structure
-        """
-        pass
-
-    # Implemented in module child
-    def proc_tree(self, tree) -> dict: "Return a dict containing values processed from the tree"
-
-    # Format
-    def _constructor(
-        self,
-        arguments: dict
-    ) -> BUILT_TYPE:
-        if arguments == None:
-            raise ModuleExceptions.InvalidModuleConstruction(self)
-        try:
-            return self.template.format(
-                    **arguments
-                )
-        except Exception:
-            raise Exception(f"In '{self.name}' - Failed to unpack elements. Perhaps you need to set `no_construct` to True to avoid this module's construction?")
-
 class ConcatMod(Module):
     name="CONCAT"
     type = Module.MODULE_TYPES.ACTION
@@ -109,7 +39,8 @@ class ConcatMod(Module):
 
         supported_types = {
             ID,
-            String
+            String,
+            Int32
         }
 
         first_resolved = resolution_module(first)
@@ -124,64 +55,31 @@ class ConcatMod(Module):
         if type(first_resolved) == ID:
             first_var: BasicType  = self.compiler_instance.get_variable(first_resolved.value)
 
-            if first_var["type"] != String:
+            if first_var["type"] not in [String, Int32]:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {first_var['type'].__name__}()")
             
             first_value = first_var["object"].value
         elif type(first_resolved) == String:
             first_value = first_resolved.value
+        elif type(first_resolved) ==  Int32:
+            first_value = f"\"{first_resolved.value}\""
 
         second_value = ""
         if type(second_resolved) == ID:
             second_var: BasicType  = self.compiler_instance.get_variable(second_resolved.value)
 
-            if second_var["type"] != String:
+            if second_var["type"] not in [String, Int32]:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {second_var['type'].__name__}()")
-            
+        
             second_value = second_var["object"].value
         elif type(second_resolved) == String:
             second_value = second_resolved.value
+        elif type(second_resolved) ==  Int32:
+            second_value = f"\"{second_resolved.value}\""
 
         return String(self.remove_quotes(first_value) + self.remove_quotes(second_value))
-
-class EchoMod(Module):
-    name="echo"
-    type = Module.MODULE_TYPES.FUNCTION
-
-    def __init__(self, compiler_instance):
-        super().__init__()
-        self.compiler_instance = compiler_instance
-
-    def proc_tree(self, tree):
-        # Dependencies
-        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        values = []
-
-        for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
-            resolved = resolution_module(var)
-            value: BasicType = None
-            
-            if type(resolved) == ID:
-                value = resolved.value
-                v = self.compiler_instance.get_variable(value)
-                if v["type"] == String:
-                    value = self.remove_quotes(v['object'].value)
-                elif v["type"] == type(None):
-                    value = ""
-                else:
-                    value = v['object'].value
-            elif type(resolved) == String:
-                value = self.remove_quotes(resolved.value)
-            
-
-            values.append(value) 
-
-        if len(values) > 1:
-            raise TranspilerExceptions.TooManyValues(values, "echo($msg)")
-
-        return str(value)
 
 class PhpMod(Module):
     name="PHP"
@@ -227,11 +125,14 @@ class HTMLMod(Module):
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
             if type(obj) == String:
                 value = self.remove_quotes(obj.value)
+            elif type(obj) == ID:
+                value = self.remove_quotes(self.compiler_instance.get_variable(obj.value)['object'].value)
             else: value = obj.value
 
         # Check if it's a php call
         start = tree['LABEL']['START'] if tree['LABEL']['START'] is not None else ""
         end = tree['LABEL']['END'] if tree['LABEL']['END'] is not None else ""
+
             
         return start + value + end
     
@@ -296,9 +197,7 @@ class UseMod(Module):
         self.compiler_instance = compiler_instance
 
     def proc_tree(self, _):
-
-        print("Warning", end="")
-        console.log("[red]Use is obsolete in NoPHP, the namespace was autoloaded, skipping.[/red]")
+        Warn("Use is obsolete in NoPHP, the namespace was autoloaded, skipping.")
 
 class RequireOnceMod(Module):
     name="REQUIRE_ONCE"
@@ -500,6 +399,7 @@ class ClassDeclarationMod(Module):
     def proc_tree(self, tree):
         # pprint(tree)
         extends = None
+        source: list = []
 
         if "EXTENDS" in tree:
             # Check if the class exists
@@ -510,8 +410,9 @@ class ClassDeclarationMod(Module):
                 instance = self.compiler_instance.new_instance(
                     namespace=tree['ID']
                 )
-                instance.run(self.compiler_instance.classes[extends]["source"]["PROGRAM"])
-                instance.run(tree['PROGRAM'])
+                source = list(self.compiler_instance.classes[extends]["source"])
+                source.extend(tree['PROGRAM'])
+                instance.run(source)
                 extends = self.compiler_instance.classes[extends]['object']
             else:
                 raise TranspilerExceptions.ClassNotFound(extends)
@@ -523,13 +424,14 @@ class ClassDeclarationMod(Module):
                 namespace=tree['ID'],
                 tree=tree['PROGRAM']
             )
+            source = tree['PROGRAM']
             instance.run()
 
         # Then Add this instance as a class template object, we can duplicate it later
         self.compiler_instance.create_class(
             name=tree['ID'],
             obj=instance,
-            source=tree,
+            source=source,
             parent=extends
         )
 
@@ -555,13 +457,15 @@ class NewObjectMod(Module):
 
         if name in self.compiler_instance.classes:
             obj = self.compiler_instance.new_instance(
-                    namespace=name + "_obj"
+                    namespace=name + "_obj",
+                    sync="b"
                 )
-            obj.run(self.compiler_instance.classes[name]["source"]["PROGRAM"])
+            obj.run(self.compiler_instance.classes[name]["source"])
             # obj = deepcopy(self.compiler_instance.classes[name]['object'])
         else:
             raise TranspilerExceptions.ClassNotFound(name)
         
+
         # Call it's constructor
         if "__construct" in obj.functions:
             if obj.functions["__construct"]['level'] != "public" \
@@ -574,6 +478,8 @@ class NewObjectMod(Module):
             self.compiler_instance.write_back(
                 obj.functions["__construct"]['object']
             )
+            # console.log("Ran constructor for \"{}\"\n{}".format(name, 
+            #             self.compiler_instance.classes[name]["source"]))
 
         console.log("New object created for \"{}\"(...)".format(name))
 
@@ -623,7 +529,7 @@ class FunctionDecMod(Module):
         instance = self.compiler_instance.new_instance(
             namespace=self.compiler_instance.namespace+"_"+funcname+"_ns",
             tree=program,
-            sync = "class"
+            sync = "object"
         )
 
         instance.parent = self.compiler_instance
@@ -790,7 +696,7 @@ class FunctionCallMod(Module):
                             raise TranspilerExceptions.TypeMissmatchNL(f"{funcname}(...) return value", ret, exp)
                         done = ret
                 else:
-                    raise TranspilerExceptions.UnkownMethodReference(funcname, self.compiler_instance.variables[cls]['object'].functions)
+                    raise TranspilerExceptions.UnkownMethodReference(funcname, list(self.compiler_instance.variables[cls]['object'].functions.keys()), ns=self.compiler_instance.variables[cls]['object'].namespace)
             else:
                 raise TranspilerExceptions.ClassNotFound(cls)
             

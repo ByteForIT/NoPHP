@@ -1,0 +1,4 @@
+---
+app: Example App
+routes:
+  /: index.php

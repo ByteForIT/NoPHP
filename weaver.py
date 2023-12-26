@@ -31,7 +31,6 @@ from lang.modules import (
     PhpMod,
     HTMLMod,
     ConcatMod,
-    EchoMod,
     PublicModMod,
     RequireOnceMod,
     ReturnMod,
@@ -44,6 +43,8 @@ from lang.modules import (
     FunctionDecMod,
     WhileMod
 )
+# Language builtins
+from lang.std.echo import EchoMod
 
 ### Args proc ###
 from sys import argv
