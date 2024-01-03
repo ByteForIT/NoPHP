@@ -277,6 +277,10 @@ class PyettyParser(Parser):
     def statement(self, p):
         return p.for_loop
     
+    @_("for_loop")
+    def expression(self, p):
+        return p.for_loop
+    
     # @_("attribute")
     # def statement(self, p):
     #     return p.attribute
@@ -348,11 +352,11 @@ class PyettyParser(Parser):
     #######################
 
     @_("HTMLSTART")
-    def expression(self, p):
+    def html_full(self, p):
         return ("HTML", {"PROGRAM": [], "LABEL": {"START": p.HTMLSTART, "END": None}}, p.lineno)
     
     @_("'?' HTMLEND")
-    def expression(self, p):
+    def html_full(self, p):
         return ("HTML", {"PROGRAM": [], "LABEL": {"START": None, "END": p.HTMLEND}}, p.lineno)
 
     @_("function_call ';'")
@@ -452,8 +456,7 @@ class PyettyParser(Parser):
     def function_call(self, p):
         return (
             "NEW_OBJECT",
-            {"FUNCTION_ARGUMENTS": p.function_arguments, "ID": p.expression,
-             "ONCOMPLETE": p.program},
+            {"FUNCTION_ARGUMENTS": p.function_arguments, "ID": p.expression},
             p.lineno,
         )
     
@@ -828,10 +831,10 @@ class PyettyParser(Parser):
             p.lineno,
         )
 
-    @_("LET get_index '=' expression ';'")
+    @_("'$' get_index '=' expression ';'")
     def variable_assignment(self, p):
         return (
-            "VARIABLE_ASSIGNMENT",
+            "SET_INDEX",
             {"ID": p.get_index, "EXPRESSION": p.expression},
             p.lineno,
         )
@@ -1150,6 +1153,10 @@ class PyettyParser(Parser):
     @_(r"'[' empty ']'")
     def assoc_array(self, p):
         return ("ARRAY", {"ITEMS": ()})
+    
+    @_(r"'{' empty '}'")
+    def assoc_array(self, p):
+        return ("MAP", {"ITEMS": ()})
 
 
     @_(r"'[' assoc_array_items ']'")

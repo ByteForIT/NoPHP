@@ -1,12 +1,8 @@
 <?php
-
 namespace Example;
 
-function greet()
+function greet($el)
 {
-    return 'Hi from Example!';
+    return $el;
 }
-
-echo greet();
-
 ?>

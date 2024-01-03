@@ -6,6 +6,9 @@ from rich import print
 from rich.console import Console
 
 from lang.compiler import Compiler
+from lang.std.htmlspecialchars import HTMLSpecialCharMod
+from lang.std.rand import RandMod
+from lang.std.string import *
 from splitter import split_php
 console = Console()
 from rich.syntax import Syntax
@@ -14,8 +17,8 @@ from rich.progress import Progress
 # Parser and lexer
 from lang.lexer import PyettyLexer
 from lang.pparser import PyettyParser
-from rich.traceback import install
-install()
+# from rich.traceback import install
+# install()
 
 # Load modules
 from lang.modules import (
@@ -192,6 +195,18 @@ compiler.builtin_functions = {
     },
     "public": {
         "run_func": PublicModMod(compiler)
+    },
+    "rand": {
+        "run_func": RandMod(compiler)
+    },
+    "htmlspecialchars": {
+        "run_func": HTMLSpecialCharMod(compiler)
+    },
+    "strlen": {
+        "run_func": StrLenMod(compiler)
+    },
+    "str_replace": {
+        "run_func": StrReplaceMod(compiler)
     },
 }
 compiler.run()

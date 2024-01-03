@@ -40,22 +40,32 @@ class ConcatMod(Module):
         supported_types = {
             ID,
             String,
-            Int32
+            Int32,
+            Bool,
+            Auto,
+            Nil
         }
+
+        print(self.compiler_instance.namespace)
 
         first_resolved = resolution_module(first)
         second_resolved = resolution_module(second)
 
+
+        # Todo: Legacy, remove as it's not used and may cause issues
+        if type(first_resolved) == str: first_resolved = String(first_resolved)
+        if type(second_resolved) == str: second_resolved = String(second_resolved)
+
         if type(first_resolved) not in supported_types or\
               type(second_resolved) not in supported_types:
             # Invalid type
-            raise TranspilerExceptions.NotImplemented()
+            raise TranspilerExceptions.Generic(f"Not Implemented: {first_resolved} {second_resolved} Only supports: {supported_types}")
         
         first_value = ""
         if type(first_resolved) == ID:
             first_var: BasicType  = self.compiler_instance.get_variable(first_resolved.value)
 
-            if first_var["type"] not in [String, Int32]:
+            if first_var["type"] not in [String, Int32, Bool, Auto, Nil]:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {first_var['type'].__name__}()")
             
@@ -64,12 +74,15 @@ class ConcatMod(Module):
             first_value = first_resolved.value
         elif type(first_resolved) ==  Int32:
             first_value = f"\"{first_resolved.value}\""
+        elif type(first_resolved) == Auto:
+            first_value = first_resolved.value
+
 
         second_value = ""
         if type(second_resolved) == ID:
             second_var: BasicType  = self.compiler_instance.get_variable(second_resolved.value)
 
-            if second_var["type"] not in [String, Int32]:
+            if second_var["type"] not in [String, Int32, Bool, Auto, Nil]:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {second_var['type'].__name__}()")
         
@@ -78,6 +91,8 @@ class ConcatMod(Module):
             second_value = second_resolved.value
         elif type(second_resolved) ==  Int32:
             second_value = f"\"{second_resolved.value}\""
+        elif type(second_resolved) == Auto:
+            second_value = second_resolved.value
 
         return String(self.remove_quotes(first_value) + self.remove_quotes(second_value))
 
@@ -105,13 +120,37 @@ class HTMLMod(Module):
         super().__init__()
         self.compiler_instance = compiler_instance
 
+        self.tag = ""
+        self.attrs = {}
+
+        from html.parser import HTMLParser
+        from html.entities import name2codepoint
+
+        class MyHTMLParser(HTMLParser):
+            def __init__(self, host, convert_charrefs: bool = True) -> None:
+                super().__init__(convert_charrefs=convert_charrefs)
+                self.host = host
+            def handle_starttag(self, tag, attrs):
+                # print("Start tag:", tag)
+                self.host.tag = tag
+                for attr in attrs:
+                    # print("     attr:", attr)
+                    self.host.attrs[attr[0]] = attr[1]
+        
+
+        self.parser = MyHTMLParser(self)
+
     def proc_tree(self, tree):
         # pprint("[HTML] triggered simplified HTML build.")
+
+        self.tag = ""
+        self.attrs = {}
 
         if len(tree['PROGRAM']) == 0:
             value = ""
         elif tree['PROGRAM'][0] == 'HTML':
-            value = self(tree['PROGRAM'][1])
+            
+            value = self.__class__(self.compiler_instance)(tree['PROGRAM'][1])
         # Not sure if ths should be deleted,
         # it used to handle the ID's and etc, but shouldn't be viable anymore
         # as we can just use the RESOLUT for this
@@ -123,18 +162,58 @@ class HTMLMod(Module):
         #     value = tree['PROGRAM'][1]['VALUE']
         else:
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
+
             if type(obj) == String:
                 value = self.remove_quotes(obj.value)
             elif type(obj) == ID:
                 value = self.remove_quotes(self.compiler_instance.get_variable(obj.value)['object'].value)
+            elif obj is None:
+                # Resolution returned None?
+                raise TranspilerExceptions.Generic("Failed to parse")
+            elif type(obj) == str: # TODO: Legacy
+                value = obj
             else: value = obj.value
+
 
         # Check if it's a php call
         start = tree['LABEL']['START'] if tree['LABEL']['START'] is not None else ""
         end = tree['LABEL']['END'] if tree['LABEL']['END'] is not None else ""
 
-            
-        return start + value + end
+        # Test parse of the start
+        self.tag = ""
+        self.attrs = {}
+        self.parser.feed(start)
+        # print(self.tag)
+        # print(self.attrs)
+        
+        if self.attrs != {}:
+            final = []
+            # parse content of the attribute
+            for attr in self.attrs:
+                if self.attrs[attr] is None:
+                    raise TranspilerExceptions.Generic(f"Invalid HTML at tag {self.tag}")
+                if self.attrs[attr].startswith('$'):
+                    code = f"echo {self.attrs[attr]}"
+                    lexer = PyettyLexer()
+                    parser = PyettyParser()
+                    ast = parser.parse(lexer.tokenize(code))
+
+                    instance = self.compiler_instance.new_instance(
+                        tree=ast,
+                        sync="advanced"
+                    )
+                    instance.run()
+                    out = ''.join(instance.finished)
+                    final.append(f"{attr}=\"{out}\"")
+                else:
+                    final.append(f"{attr}=\"{self.attrs[attr]}\"")
+            start = f"<{self.tag} {' '.join(final)}>"
+
+        # Todo: Legacy
+        if type(value) == String:
+            value = self.remove_quotes(value.value)
+
+        return String(start + str(value) + end)
     
 class NamespaceMod(Module):
     name="NAMESPACE"
@@ -184,6 +263,8 @@ class NamespaceMemberMod(Module):
         # TODO: Add Classes, other namespaces
         if member in ns.functions:
             return sInnerMut("namespace_member_func", member, ns.functions[member])
+        if member in ns.classes:
+            return sInnerMut("namespace_member_class", member, ns.classes[member])
         else:
             raise TranspilerExceptions.UnkownMethodReference(member, list(ns.functions.keys()))
 
@@ -251,12 +332,17 @@ class RequireOnceMod(Module):
             )
 
 
+        old_nm = self.compiler_instance.namespace
+
         instance = self.compiler_instance.new_instance(
             namespace= value+"_sub",# Set namespace
-            tree=tokens # Load file here with lexer & parser
+            tree=tokens, # Load file here with lexer & parser
+            sync="advanced"
         )
 
         instance.run()
+
+        self.compiler_instance.namespace = old_nm
 
         self.compiler_instance.namespaces[
             instance.namespace
@@ -265,11 +351,14 @@ class RequireOnceMod(Module):
         self.compiler_instance.write_back(
             instance
         )
-
-        # Sync functions to own instance
-        # self.compiler_instance.sync_functions(
+        # self.compiler_instance.sync_variables(
         #     instance
         # )
+
+        # Sync functions to own instance
+        self.compiler_instance.sync_functions(
+            instance
+        )
 
         
 
@@ -290,20 +379,123 @@ class GetIndexMod(Module):
         name = resolution_module(tree['EXPRESSION'])
         index = resolution_module(tree['INDEX'])
 
+        if type(index) == String:
+            index_value = self.remove_quotes(index.value)
+        else: index_value = index.value
+
         if type(name) == ID:
             var = self.compiler_instance.get_variable(name.value)
             if var['type'] == DynArray:
-                if 0 <= index.value < var['object'].length:
-                    return var['object'].value[index.value]
+                if 0 <= index_value < var['object'].length:
+                    return var['object'].value[index_value]
                 else:
-                    raise TranspilerExceptions.OutOfBounds(index.value, var['object'].length)
+                    print(var['object'])
+                    raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
+            # TODO: Session and Request types need to be compatible with printing out in echo
+            elif var['type'] == Session:
+                if index_value in var['object'].value:
+                    # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]), var['object'].value)
+                    return Auto(var['object'].value[index_value], "basic")
+                else:
+                    # print(f"Session does not contain {index_value}, it only contains: {list(var['object'].value.keys())}")
+                    return Nil()
+            elif var['type'] == Request:
+                if index_value.lower() in var['object'].value.__dir__():
+                    # print("Request contains:", getattr(var['object'].value, index_value.lower()), index_value.lower(), list(var['object'].value.__dir__()))
+                    return Auto(getattr(var['object'].value, index_value.lower()), type="basic")
+                else:
+                    # print("Request contains:",list(var['object'].value.__dir__()))
+                    return Nil()
+            else:
+                raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray, Session, Request], line)
+        elif type(name) == DynArray:
+            if 0 <= index_value < name.length:
+                return Auto(name.value[index_value], "basic")
+            else:
+                raise TranspilerExceptions.OutOfBounds(index_value, name.length)
+            # raise TranspilerExceptions.Generic(f"{name.value}")
+        elif type(name) == Auto:
+            # This is dumb but assume we got passed some internal object right?
+            from werkzeug.datastructures import ImmutableMultiDict
+            if type(name.value) == ImmutableMultiDict:
+                if index_value in name.value.to_dict():
+                    return Auto(name.value.to_dict()[index_value], "basic")
+                else:
+                    # Not present
+                    return Nil()
+            elif type(name.value) == dict:
+                if index_value in name.value:
+                    return Auto(name.value[index_value], "basic")
+                else:
+                    return Nil()
+            elif type(name.value) == Map:
+                if index_value in name.value.value:
+                    return Auto(name.value.value[index_value], "basic")
+                else:
+                    return Nil()
+            elif type(name.value) == DynArray:
+                if 0 <= index_value < name.value.length:
+                    return Auto(name.value.value[index_value], "basic")
+                else:
+                    raise TranspilerExceptions.OutOfBounds(index_value, name.value.length)
+            raise TranspilerExceptions.Generic(f"{name.value}")
+        elif type(name) == Nil:
+            return Nil()
+        else:
+            raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor: {name}", type(name), [ID, DynArray], line)
+        return Nil()
+
+class SetIndexMod(Module):
+    name="SET_INDEX"
+    type = Module.MODULE_TYPES.SPECIAL_ACTION
+
+    def __init__(self, compiler_instance):
+        super().__init__()
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        # Dependencies
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
+
+        # pprint(tree)
+        # exit()
+        line = tree['ID'][-1]
+        name = resolution_module(tree['ID'][1]['EXPRESSION'])
+        index = resolution_module(tree['ID'][1]['INDEX'])
+        value = resolution_module(tree['EXPRESSION'])
+
+        if type(index) == String:
+            index_value = self.remove_quotes(index.value)
+        else: index_value = index.value
+
+        if type(value) == String:
+            value = self.remove_quotes(value.value)
+        
+
+        if type(name) == ID:
+            var = self.compiler_instance.get_variable(name.value)
+            if var['type'] == DynArray:
+                if 0 <= index_value < var['object'].length:
+                    var['object'].value[index_value] = value
+                else:
+                    raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
+            elif var['type'] == Session:
+                # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]))
+                var['object'].value[index_value] = value.value
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray], line)
         elif type(name) == DynArray:
             raise TranspilerExceptions.NotImplemented
+        elif type(name) == Auto:
+            if type(name.value) == dict:
+                name.value[index_value] = value
+            elif type(name.value) == Map:
+                name.value.value[index_value] = value
+            else:
+                raise TranspilerExceptions.Generic(f"{name.value} is not a map.")
         else:
-            raise TranspilerExceptions.TypeMissmatch("Get Index Actor", type(name), [ID, DynArray], line)
-
+            raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor '{name}'", type(name), [ID, DynArray], line)
+        
 class ResolutionMod(Module):
     name="RESOLUT"
     type = Module.MODULE_TYPES.ACTION
@@ -320,14 +512,23 @@ class ResolutionMod(Module):
 
         elif tree[0] == 'INT':
             return Int32(tree[1]['VALUE'])
+        
+        elif tree[0] == 'NEG':
+            return Int32(-(self(tree[1]).value))
 
         elif tree[0] == 'FLOAT':
             return Float(tree[1]['VALUE'])
+        
+        elif tree[0] == 'BOOL':
+            return Bool(tree[1]['VALUE'])
 
         elif tree[0] == 'HEX':
             return HexInt32(tree[1]['VALUE'])
         
         elif tree[0] == 'Nil':
+            return Nil(0)
+        
+        elif tree[0] == 'NULL':
             return Nil(0)
 
         elif tree[0] == 'CHAR':
@@ -344,6 +545,14 @@ class ResolutionMod(Module):
             items = [self.proc_tree(item) for item in tree[1]['ITEMS']]
             return DynArray(items, type=List.GUESS)
         
+        elif tree[0] == 'MAP':
+            if len(tree[1]['ITEMS']) == 0:
+                items = dict()
+            else:
+                raise TranspilerExceptions.NotImplemented
+            return Map(items)
+
+        
         elif tree[0] == 'ID':
 
             return ID(tree[1]['VALUE'])
@@ -354,7 +563,7 @@ class ResolutionMod(Module):
         
         elif tree[0] == 'HTML':
             html_module: Module = self.compiler_instance.get_action("HTML")
-            return String(html_module(tree[1]))
+            return html_module(tree[1])
         
         elif tree[0] == 'FUNCTION_CALL':
             stack = inspect.stack()
@@ -384,6 +593,10 @@ class ResolutionMod(Module):
         elif tree[0] == "TARROW":
             TarrowMod: Module = self.compiler_instance.get_action("TARROW")
             return TarrowMod(tree[1])
+        
+        elif tree[0] == "FOREACH":
+            ForeachMod: Module = self.compiler_instance.get_action("FOREACH")
+            return ForeachMod(tree[1], no_construct=True)
 
         raise Exception(f"[RESOLUT] Failed to match {tree} is '{tree[0]}' supported?")
 
@@ -452,22 +665,59 @@ class NewObjectMod(Module):
 
     def proc_tree(self, tree):
         # pprint(tree)
+        # Dependencies
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
 
-        name = tree['ID'][1]['VALUE']
+        name = resolution_module(tree['ID'])
+        arguments = tree['FUNCTION_ARGUMENTS']
 
-        if name in self.compiler_instance.classes:
+        if type(name) == sInnerMut:
+            clas = name.value[2]
             obj = self.compiler_instance.new_instance(
-                    namespace=name + "_obj",
+                    namespace=name.value[1] + "_obj",
                     sync="b"
                 )
-            obj.run(self.compiler_instance.classes[name]["source"])
-            # obj = deepcopy(self.compiler_instance.classes[name]['object'])
+            obj.run(clas['source'])
+        elif name.value in self.compiler_instance.classes:
+            obj = self.compiler_instance.new_instance(
+                    namespace=name.value + "_obj",
+                    sync="b"
+                )
+            obj.run(self.compiler_instance.classes[name.value]["source"])
         else:
             raise TranspilerExceptions.ClassNotFound(name)
-        
 
         # Call it's constructor
         if "__construct" in obj.functions:
+            if 'POSITIONAL_ARGS' in arguments:
+                parsed_args = [
+                    resolution_module(arg)
+                    for arg in arguments['POSITIONAL_ARGS']
+                ]
+
+                for i, arg in enumerate(obj.functions["__construct"]["arguments"]):
+                    try:
+                        v = parsed_args[i]
+                    except IndexError as e:
+                        print(parsed_args)
+                        # raise TranspilerExceptions.OutOfBounds(i, len(parsed_args))
+                        raise TranspilerExceptions.Generic(f"Too few arguments provided for constructor.\n\tGot:{parsed_args}\n\tExpected:{obj.functions["__construct"]["arguments"]}")
+
+                    if type(v) == ID:
+                        n = v.value
+                        v = self.compiler_instance.get_variable(v.value)['object']
+                    else: n = None
+
+                    # print(n, v, self.compiler_instance.namespace)
+
+
+                    obj.functions["__construct"]["object"].create_variable(
+                        arg.value, 
+                        type(v),
+                        v,
+                        force=True
+                    )
+
             if obj.functions["__construct"]['level'] != "public" \
                 and self.compiler_instance.namespace != obj.functions["__construct"]['object'].parent.namespace:
                 raise TranspilerExceptions.Generic(f"Invalid access level on constructor of {obj.namespace}")
@@ -475,9 +725,13 @@ class NewObjectMod(Module):
             func = obj.functions["__construct"]["run_func"]
             func()
 
+            # pprint(obj.functions["__construct"]['object'].variables)
+
             self.compiler_instance.write_back(
                 obj.functions["__construct"]['object']
             )
+            # print(obj.variables)
+            # print(obj.functions["__construct"]['object'].variables)
             # console.log("Ran constructor for \"{}\"\n{}".format(name, 
             #             self.compiler_instance.classes[name]["source"]))
 
@@ -566,6 +820,51 @@ class FunctionCallMod(Module):
         super().__init__()
         self.compiler_instance = compiler_instance
 
+    def run_sInnerMut(self, funcobj, arguments):
+        # Dependencies
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
+        if 'POSITIONAL_ARGS' in arguments:
+            parsed_args = [
+                resolution_module(arg)
+                for arg in arguments['POSITIONAL_ARGS']
+            ]
+        else: parsed_args = []
+        if funcobj.value[0] == "namespace_member_func":
+            for i, arg in enumerate(funcobj.value[2]["arguments"]):
+                try:
+                    v = parsed_args[i]
+                except IndexError as e:
+                    raise TranspilerExceptions.OutOfBounds(f"{i}, {arg}, {parsed_args}", len(funcobj.value[2]["arguments"]))
+        
+                funcobj.value[2]['object'].create_variable(
+                    arg.value, 
+                    type(v),
+                    v,
+                    force=True
+                )
+                # print(v.value)
+            # We are executing something from a different namespace
+            # ("namespace_member_func", member, ns.functions[member])
+            func = funcobj.value[2]["run_func"]
+            # funcobj.value[2]['object'].stop = False
+            func()
+            self.compiler_instance.write_back(
+                funcobj.value[2]['object']
+            )
+            ret = funcobj.value[2]['object'].returns
+            exp = funcobj.value[2]['returns']
+
+            if ret != Nil:
+                if type(ret) == ID:
+                    ret = funcobj.value[2]['object'].get_variable(ret.value)['object']
+                if type(ret) != exp and exp != Any:
+                    raise TranspilerExceptions.TypeMissmatchNL(f"{funcobj.value[1]}(...) return value", ret, exp)
+                # print(ret.value)
+                # input()
+                return ret
+        else:
+            raise TranspilerExceptions.NotImplemented()
+
     def proc_tree(self, tree):
         # TODO: Simplify this
         #           - Move all expected return validation into a separate function
@@ -613,25 +912,7 @@ class FunctionCallMod(Module):
         console.log(f"[FunctionCallMod] {funcname}(...) from {cls}")
 
         if type(funcobj) == sInnerMut:
-            if funcname[0] == "namespace_member_func":
-                # We are executing something from a different namespace
-                # ("namespace_member_func", member, ns.functions[member])
-                func = funcname[2]["run_func"]
-                func()
-                self.compiler_instance.write_back(
-                    funcname[2]['object']
-                )
-                ret = funcname[2]['object'].returns
-                exp = funcname[2]['returns']
-
-                if ret != Nil:
-                    if type(ret) == ID:
-                        ret = funcname[2]['object'].get_variable(ret.value)['object']
-                    if type(ret) != exp and exp != Any:
-                        raise TranspilerExceptions.TypeMissmatchNL(f"{funcname[1]}(...) return value", ret, exp)
-                    done = ret
-            else:
-                raise TranspilerExceptions.NotImplemented()
+            return self.run_sInnerMut(funcobj, arguments)
         elif cls is not None:
             if cls == 'parent':
                 function_parent = self.compiler_instance.parent
@@ -679,6 +960,21 @@ class FunctionCallMod(Module):
             elif cls in self.compiler_instance.variables:
                 if funcname in self.compiler_instance.variables[cls]['object'].functions:
                     funcobj = self.compiler_instance.variables[cls]['object'].functions[funcname]
+
+                    for i, arg in enumerate(self.compiler_instance.variables[cls]['object'].functions[funcname]["arguments"]):
+                        try:
+                            v = parsed_args[i]
+                        except IndexError as e:
+                            raise TranspilerExceptions.OutOfBounds(i, len(self.compiler_instance.variables[cls]['object'].functions[funcname]["arguments"]))
+
+                        self.compiler_instance.variables[cls]['object'].functions[funcname]["object"].create_variable(
+                            arg.value, 
+                            type(v),
+                            v,
+                            force=True
+                        )
+                    # TODO: REMOVE
+                    # print(self.compiler_instance.variables[cls]['object'].functions[funcname]["object"].namespace ,self.compiler_instance.variables[cls]['object'].functions[funcname]["object"].variables)
                     func = self.compiler_instance.variables[cls]['object'].functions[funcname]["run_func"]
                     # TODO: Check permission level
                     func()
@@ -687,6 +983,8 @@ class FunctionCallMod(Module):
                     )
                     ret = self.compiler_instance.variables[cls]['object'].functions[funcname]['object'].returns
                     exp = self.compiler_instance.variables[cls]['object'].functions[funcname]['returns']
+                    # TODO: REMOVE
+                    # print(funcname, ret)
                     if ret != Nil:
                         if type(ret) == ID:
                             # print(list(self.compiler_instance.variables[cls]['object'].functions[funcname]['object'].variables.keys()))
@@ -763,11 +1061,14 @@ class TarrowMod(Module):
     
     def proc_tree(self, tree):
         # TODO: Add sometihng idk
+        # TODO: Add parent
         if tree["FROM"] == "this":
-            return self.compiler_instance.parent.get_variable(tree["TO"])['object']
+            # print(self.compiler_instance.get_variable(tree["TO"])['object'])
+            return self.compiler_instance.get_variable(tree["TO"])['object']
         elif tree["FROM"] in self.compiler_instance.variables:
             o = self.compiler_instance.get_variable(tree["FROM"])['object']
-            return o.get_variable(tree["TO"])['object']
+            # print(tree["TO"], o.get_variable(tree["TO"]), self.compiler_instance.namespace)
+            return Auto(o.get_variable(tree["TO"])['object'], 'basic').value
         else:
             raise TranspilerExceptions.NotImplemented
         
@@ -783,7 +1084,10 @@ class ClassAttrMod(Module):
         # Dependencies
         raise TranspilerExceptions.NotImplemented
     
-class PublicModMod(Module):
+
+### ACCESS LEVELS ###
+# TODO: ACTUALLY IMPLEMENT THEM
+class PublicMod(Module):
     name="public"
     type = Module.MODULE_TYPES.NON_WRITEABLE
 
@@ -801,6 +1105,47 @@ class PublicModMod(Module):
         ntree['ID'] = tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS'][0][1]['VALUE']
 
         varas_module(ntree)
+
+class ProtectedMod(Module):
+    name="protected"
+    type = Module.MODULE_TYPES.NON_WRITEABLE
+
+    def __init__(self, compiler_instance):
+        super().__init__()
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        # Dependencies
+        varas_module: Module = self.compiler_instance.get_action('VARIABLE_ASSIGNMENT')
+
+        # Create var :)))
+        ntree = {}
+        ntree['EXPRESSION'] = ["Nil"]
+        ntree['ID'] = tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS'][0][1]['VALUE']
+
+        varas_module(ntree)
+
+
+class PrivateMod(Module):
+    name="private"
+    type = Module.MODULE_TYPES.NON_WRITEABLE
+
+    def __init__(self, compiler_instance):
+        super().__init__()
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        # Dependencies
+        varas_module: Module = self.compiler_instance.get_action('VARIABLE_ASSIGNMENT')
+
+        # Create var :)))
+        ntree = {}
+        ntree['EXPRESSION'] = ["Nil"]
+        ntree['ID'] = tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS'][0][1]['VALUE']
+
+        varas_module(ntree)
+
+###############################################################################################
 
 
 class VariableAssignMod(Module):
@@ -897,16 +1242,16 @@ class ConditionalMod(Module):
         self.compiler_instance = compiler_instance
 
     def equal(self, val1, val2):
-        return val1.value == val2.value
+        return self.remove_quotes(val1) == self.remove_quotes(val2)
 
     def nequal(self, val1, val2):
         return not self.equal(val1, val2)
     
     def less(self, val1, val2): 
-        return val1.value < val2.value
+        return self.remove_quotes(val1) < self.remove_quotes(val2)
 
     def greater(self, val1, val2): 
-        return not self.less(val1, val2)
+        return self.remove_quotes(val1) > self.remove_quotes(val2)
     
     def proc_tree(self, tree):
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
@@ -932,14 +1277,22 @@ class ConditionalMod(Module):
         
         def atomize(val):
             if type(val) == ID:
-                val = self.compiler_instance.get_variable(val.value)['object']
+                val = atomize(self.compiler_instance.get_variable(val.value)['object'])
+            elif type(val) in [Int32, String, Bool, Float] :
+                val = val.value
+            elif type(val) == Auto:
+                val = atomize(val.value)
+            else:
+                print(type(val))
             return val
         
         first = atomize(first)
         second = atomize(second)
 
         # Evaluate condition and run it's code
-        if condition(first, second):
+        c = condition(first, second)
+        # print(c, self.remove_quotes(first), self.remove_quotes(second), if_condition[0])
+        if c:
             self.compiler_instance.run(if_program)
         else:
             if else_pr is not None:
@@ -1015,6 +1368,8 @@ class ForEachMod(Module):
 
         line = tree['ITERABLE'][-1]
 
+        finished = []
+
         program = tree['PROGRAM']
 
         if type(iterable) == ID:
@@ -1023,21 +1378,34 @@ class ForEachMod(Module):
             if var['type'] == DynArray:
                 for value in var['object'].value:
                     # Inject value as the variable
-                    self.compiler_instance.create_variable(
+                    
+
+                    instance = self.compiler_instance.new_instance(
+                        tree=program,
+                        sync="advanced"
+                    )
+
+                    instance.create_variable(
                         variable.value,
                         type(value),
                         value,
                         force = True
                     )
 
-                    self.compiler_instance.run(
-                        program
-                    )
+                    instance.run()
 
-                    self.compiler_instance.remove_variable(variable.value)
+                    if self.no_construct:
+                        finished.append(
+                            ''.join(instance.finished)
+                        )
+                    else:
+                        self.compiler_instance.write_back(
+                            instance
+                        )
+                    self.compiler_instance.sync(instance)
 
             else:
-                raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray], line)
+                raise TranspilerExceptions.TypeMissmatch(f"Get ID Index Actor {var['object']}", var['type'], [ID, DynArray], line)
         
         elif type(iterable) == DynArray:
             raise TranspilerExceptions.NotImplemented
@@ -1045,6 +1413,8 @@ class ForEachMod(Module):
         else:
             raise TranspilerExceptions.TypeMissmatch("Get Index Actor", type(iterable), [ID, DynArray], line)
         
+        if self.no_construct:
+            return String(''.join(finished))
 
 class InternalMod(Module):
     name="INTERNAL_CALL"
@@ -1065,6 +1435,9 @@ class InternalMod(Module):
     def namespace(self, line):
         return print(self.compiler_instance.namespace)
     
+    def die(self, line):
+        self.compiler_instance.stop = True
+    
     def proc_tree(self, tree):
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
 
@@ -1072,7 +1445,8 @@ class InternalMod(Module):
 
         calls = {
             "panic": self.panic,
-            "nm": self.namespace
+            "nm": self.namespace,
+            "die": self.die
         }
 
         if value.value in calls:

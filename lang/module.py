@@ -25,6 +25,7 @@ class Module:
         self.o1 = False
         self.o2 = False
         self.o3 = False
+        self.no_construct = False        
 
     def __call__(
         self,
@@ -32,8 +33,8 @@ class Module:
         no_construct = False
     ):
 
-        _values = self.proc_tree(tree)
         self.no_construct = no_construct
+        _values = self.proc_tree(tree)
         self.override()
         return _values
     

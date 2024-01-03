@@ -120,12 +120,6 @@ echo "Android: " . $b . " Expected: " . $android->greeting;
 echo "</br>";
 $android->bye(); // Good bye!
 
-require_once("example.php");
-
-use Example;
-
-echo Example\greet();
-
 class YourApp {
     public $greeting;
     public function __construct() {
@@ -138,6 +132,31 @@ class YourApp {
 $app = new YourApp();
 $app->welcome();
 // ?debug;
+
+session_start(); // Regardless of this call, if a session exists, it will be reused in this scope.
+                 // As to prevent throwing around an object from Python in scopes, a singleton is used.
+
+
+$_SESSION["aa"] = "cc";
+echo $_SESSION["aa"];
+
+function test_scopes_for_session() 
+{
+    $_SESSION["aa"] = "bb";
+    echo $_SESSION["aa"];
+}
+test_scopes_for_session();
+echo $_SESSION["aa"];
+
+echo "<br>" . "Expected output: cc bb bb";
+
+
+require_once("example.php");
+
+use Example;
+
+echo "<br>" . Example\greet(2000);
+echo "<br>" . Example\greet(1000);
 
 ?>
 

@@ -59,6 +59,9 @@ class TranspilerExceptions:
     class TooManyValues(Exception):
         def __init__(self, values, scope):
             Exception.__init__(self, f"Too many values supplied to unpack in current scope. values: {values} scope: {scope}")
+    class IncorrectNumberOfValues(Exception):
+        def __init__(self, values, scope):
+            Exception.__init__(self, f"Invalid number of values: {values} scope: {scope}")
     class Generic(Exception):
         def __init__(self, msg):
             Exception.__init__(self, msg)

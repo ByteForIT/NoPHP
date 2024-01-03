@@ -60,9 +60,9 @@ class Compiler:
         instance = Compiler(
             tree = tree,
             namespace = namespace,
-            variables = self.variables if sync == "object" else deepcopy(self.variables),
+            variables = self.variables if sync in ("object", "advanced") else self.deepcopy_vars(),
             functions = self.functions.copy() if sync == "advanced" else {},
-            classes = self.classes if sync in ("class", "object") else {},
+            classes = self.classes if sync in ("class", "object", "advanced") else {},
             namespaces = namespaces,
         )
 
@@ -77,7 +77,18 @@ class Compiler:
                 "run_func": type(self.builtin_functions[builtin]['run_func'])(instance)
             }
 
+        instance.parent = self
+
         return instance
+    
+    def deepcopy_vars(self):
+        v = {}
+        for var in self.variables:
+            try:
+                v[var] = deepcopy(self.variables[var])
+            except:
+                print(f"Was unable to clone : {var}")
+        return v
     
     def __deepcopy__(self, memodict={}):
         copy_object = Compiler(
@@ -91,9 +102,22 @@ class Compiler:
         instance
     ):
         for name in instance.functions:
-            self.functions[name] = {
-                instance.functions[name]
-            }
+            self.functions[name] = instance.functions[name]
+            
+
+    def sync_variables(self, instance):
+        for name in instance.variables:
+            self.variables[name] = instance.variables[name]
+            
+
+    def sync_classes(self, instance: 'Compiler'):
+        for name in instance.classes:
+            self.classes[name] = instance.classes[name]
+
+    def sync(self, instance: 'Compiler'):
+        self.sync_functions(instance)
+        self.sync_variables(instance)
+        self.sync_classes(instance)
 
     
     def populate_modules_actions(
@@ -150,13 +174,16 @@ class Compiler:
             raise TranspilerExceptions.ActionRequiredButNotFound(name, self.actions)
 
     def run(self, code=None):
+        # Fixed: Ok so, the issue here was that sometimes the function body wouldnt be ran properly
+        # This was due to self.stop persisting. The below disables that 
+        self.stop = False
         if code is None:
             code = self.code
         else:
             code = code
         for action in code:
             if self.stop:
-                break
+                return
             # Hack 1, see issue 1
             self.populate_modules_actions(
                 self.raw_modules
@@ -178,7 +205,7 @@ class Compiler:
                     elif self.actions[action[0]].type == Module.MODULE_TYPES.NON_WRITEABLE:
                         continue
                 except Exception as e:
-                    console.print_exception(show_locals=True)
+                    console.print_exception(show_locals=False)
                     console.bell()
                     console.print(f"[red]({__file__.split('/')[-1]}:{action[-1]})\n\tERROR:[/red]", e)
                     rprint(

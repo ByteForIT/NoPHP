@@ -1,4 +1,6 @@
 ---
 app: Example App
+secret_key: JDE92ID23IJD32K0DJ308JD2
 routes:
   /: index.php
+  /test: test.php

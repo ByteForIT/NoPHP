@@ -1,11 +1,9 @@
-from lang.compiler import Compiler
-from lang.exceptions import TranspilerExceptions
+from lang.exceptions import TranspilerExceptions, Warn
 from lang.module import Module
 from lang.types import *
 
-
-class EchoMod(Module):
-    name="echo"
+class RedirectMod(Module):
+    name="redirect"
     type = Module.MODULE_TYPES.FUNCTION
 
     def __init__(self, compiler_instance):
@@ -16,8 +14,6 @@ class EchoMod(Module):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         values = []
-
-        # print(tree)
 
         for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
             v = resolution_module(var)
@@ -39,20 +35,20 @@ class EchoMod(Module):
             elif v['type'] == Session:
                 value = str(dict(v["object"].value))
             elif v['type'] == Auto:
-                value = str(v['object'].value)
+                value = self.remove_quotes(String(v['object'].value).value)
             elif type(v) == String:
-                value = self.remove_quotes(v.value) # TODO: ADD class instance type
-            elif isinstance(v['object'],Compiler):
-                value = f"{v['object'].namespace}()"
+                value = self.remove_quotes(v.value)
             else:
                 print(f"No known type {v['type']}")
-                value = v['object']
+                value = v['object'].value
 
             
 
             values.append(value) 
 
         if len(values) > 1:
-            raise TranspilerExceptions.TooManyValues(values, "echo($msg)")
+            raise TranspilerExceptions.TooManyValues(values, "redirect($msg)")
+        
 
-        return str(value)
+
+        return String(f'<meta http-equiv="refresh" content="0;url={values[0]}">')

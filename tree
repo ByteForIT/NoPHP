@@ -1,652 +1,28 @@
      PHP,
      {
-         'PROGRAM':          NAMESPACE,
+         'PROGRAM':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      HTML,
+     {
+         'PROGRAM':  [],
+         'LABEL':  {
+     'START':  <html data-bs-theme="dark">,
+     'END':  None,
+ },
+     },
+     2,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             2,
+     },
+         NAMESPACE,
          {
              'ID':  App,
          },
          3,
-         CLASS_DECLARATION,
-         {
-             'ID':  Router,
-             'PROGRAM':  ('('FUNCTION_DECLARATION', {'FUNCTION_ARGUMENTS': {}, 'ID': '__construct', 'LEVEL': 'public', 'PROGRAM': (('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'Im init!'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 7)}), ('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': '<br>'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 8)}))}, 6)', (
-     FUNCTION_DECLARATION,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':  myFunction,
-         'LEVEL':  public,
-         'PROGRAM':      ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      Hello from inside myFunction in class Router!,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             11,
-     },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      <br>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             12,
-     },
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  returns,
-             'EXPRESSION':  ('INT', {
-     'VALUE':      10,
- },
-         },
-         13,
-         RETURN,
-         {
-             'EXPRESSION':      ID,
-     {
-         'VALUE':  returns,
-     },
-     14,
-         },
-         14,
-         'RETURNS_TYPE':      ID,
-     {
-         'VALUE':  int,
-     },
-     10,
-     },
-     10,
- )),
-         },
-         5,
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
-     'POSITIONAL_ARGS':      ID,
-     {
-         'VALUE':  id,
-     },
-     18,
- },
-             'ID':  RunTests,
-             'PROGRAM':          VARIABLE_ASSIGNMENT,
-         {
-             'ID':  hello,
-             'EXPRESSION':  ('STRING', {
-     'VALUE':      Hello ,
- },
-         },
-         19,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  example_html,
-             'EXPRESSION':  ('CONCAT', {
-     '0':      ('STRING', {
-         'VALUE':          <h1>,
-     },
-     '1':      ('CONCAT', {
-         '0':              ID,
-             {
-                 'VALUE':  hello,
-             },
-             21,
-         '1':          ('CONCAT', {
-             '0':              ('STRING', {
-                 'VALUE':                  World,
-             },
-             '1':              ('STRING', {
-                 'VALUE':                  </h1>,
-             },
-         },
-     },
- },
-         },
-         21,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':      ID,
-     {
-         'VALUE':  example_html,
-     },
-     23,
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             23,
-     },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      <code>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             25,
-     },
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  ExampleFunction,
-             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'I return: '}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 28)})', (
-     RETURN,
-     {
-         'EXPRESSION':  ('INT', {
-     'VALUE':      1,
- },
-     },
-     29,
- )),
-             'RETURNS_TYPE':      ID,
-     {
-         'VALUE':  int,
-     },
-     27,
-         },
-         27,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  hi,
-             'EXPRESSION':      FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':      ID,
-     {
-         'VALUE':  ExampleFunction,
-     },
-     32,
-     },
-     32,
-         },
-         32,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':      ID,
-     {
-         'VALUE':  hi,
-     },
-     34,
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             34,
-     },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      <br>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             36,
-     },
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  router,
-             'EXPRESSION':      NEW_OBJECT,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':      ID,
-     {
-         'VALUE':  Router,
-     },
-     38,
-     },
-     38,
-         },
-         38,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  b,
-             'EXPRESSION':      FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':  myFunction,
-         'CLASS':  router,
-     },
-     41,
-         },
-         41,
-         CONDITIONAL,
-         {
-             'IF':      IF,
-     {
-         'CODE':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('STRING', {'VALUE': 'If works'}),)}, 'ID': ('ID', {'VALUE': 'echo'}, 45)})', (
-     FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
-     'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      <br>,
- },
- },
-         'ID':      ID,
-     {
-         'VALUE':  echo,
-     },
-     46,
-     },
- )),
-         'CONDITION':      EQEQ,
-         ID,
-         {
-             'VALUE':  b,
-         },
-         44,
-     ('INT', {
-         'VALUE':          10,
-     },
-     },
-     44,
-             'ELSE_IF':  ('None', None),
-             'ELSE':      ELSE,
-     {
-         'CODE':  ('FUNCTION_CALL', {
-     'FUNCTION_ARGUMENTS':      {
-         'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      If failed,
- },
-     },
-     'ID':          ID,
-         {
-             'VALUE':  echo,
-         },
-         48,
- },
-     },
-     47,
-         },
-         44,
-         WHILE,
-         {
-             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('ID', {'VALUE': 'b'}, 54),)}, 'ID': ('ID', {'VALUE': 'echo'}, 54)})', (
-     VARIABLE_ASSIGNMENT,
-     {
-         'ID':  b,
-         'EXPRESSION':      ADD,
-         ID,
-         {
-             'VALUE':  b,
-         },
-         55,
-     ('INT', {
-         'VALUE':          1,
-     },
-     },
-     55,
- )),
-             'CONDITION':      NOT_EQEQ,
-         ID,
-         {
-             'VALUE':  b,
-         },
-         53,
-     ('INT', {
-         'VALUE':          10,
-     },
-         },
-         53,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  array,
-             'EXPRESSION':  ('ARRAY_FILLED', {
-     'ITEMS':          ('STRING', {
-             'VALUE':              Hello,
-         },
-         ('STRING', {
-             'VALUE':              World,
-         },
-         ('STRING', {
-             'VALUE':              three,
-         },
- },
-         },
-         58,
-         FOREACH,
-         {
-             'ITERABLE':      ID,
-     {
-         'VALUE':  array,
-     },
-     61,
-             'VARIABLE':      ID,
-     {
-         'VALUE':  value,
-     },
-     61,
-             'PROGRAM':  ('('FUNCTION_CALL', {'FUNCTION_ARGUMENTS': {'POSITIONAL_ARGS': (('ID', {'VALUE': 'value'}, 62),)}, 'ID': ('ID', {'VALUE': 'echo'}, 62)})', (
-     FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
-     'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      <br>,
- },
- },
-         'ID':      ID,
-     {
-         'VALUE':  echo,
-     },
-     63,
-     },
- )),
-         },
-         61,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      </code>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             66,
-     },
-             'RETURNS_TYPE':      ID,
-     {
-         'VALUE':  void,
-     },
-     18,
-         },
-         18,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('INT', {
-     'VALUE':      1,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  RunTests,
-             },
-             69,
-     },
-         CLASS_DECLARATION,
-         {
-             'ID':  Robot,
-             'PROGRAM':      ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':      ID,
-     {
-         'VALUE':  greeting,
-     },
-     73,
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  public,
-             },
-             73,
-     },
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  __construct,
-             'LEVEL':  public,
-             'PROGRAM':      VARIABLE_ASSIGNMENT,
-     {
-         'ID':  greeting,
-         'PARENT':  this,
-         'EXPRESSION':  ('STRING', {
-     'VALUE':      Hello,
- },
-     },
-     78,
-         },
-         76,
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  greet,
-             'LEVEL':  public,
-             'PROGRAM':      RETURN,
-     {
-         'EXPRESSION':      TARROW,
-     {
-         'FROM':  this,
-         'TO':  greeting,
-     },
-     83,
-     },
-     83,
-         },
-         81,
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  bye,
-             'LEVEL':  public,
-             'PROGRAM':      RETURN,
-     {
-         'EXPRESSION':  ('STRING', {
-     'VALUE':      Good bye!,
- },
-     },
-     88,
-         },
-         86,
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  wrap,
-             'LEVEL':  public,
-             'PROGRAM':  ('FUNCTION_CALL', {
-     'FUNCTION_ARGUMENTS':      {
-         'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      +++++++,
- },
-     },
-     'ID':          ID,
-         {
-             'VALUE':  echo,
-         },
-         92,
- },
-         },
-         90,
-         },
-         71,
-         CLASS_DECLARATION,
-         {
-             'ID':  Android,
-             'EXTENDS':  Robot,
-             'PROGRAM':      FUNCTION_DECLARATION,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':  __construct,
-         'LEVEL':  public,
-         'PROGRAM':      VARIABLE_ASSIGNMENT,
-     {
-         'ID':  greeting,
-         'PARENT':  this,
-         'EXPRESSION':  ('STRING', {
-     'VALUE':      Hi!,
- },
-     },
-     101,
-     },
-     98,
-         },
-         96,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  robot,
-             'EXPRESSION':      NEW_OBJECT,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':      ID,
-     {
-         'VALUE':  Robot,
-     },
-     111,
-     },
-     111,
-         },
-         111,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  a,
-             'EXPRESSION':      FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':  greet,
-         'CLASS':  robot,
-     },
-     112,
-         },
-         112,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('CONCAT', {
-     '0':      ('STRING', {
-         'VALUE':          Robot: ,
-     },
-     '1':      ('CONCAT', {
-         '0':              ID,
-             {
-                 'VALUE':  a,
-             },
-             113,
-         '1':          ('CONCAT', {
-             '0':              ('STRING', {
-                 'VALUE':                   Expected: ,
-             },
-             '1':                  TARROW,
-                 {
-                     'FROM':  robot,
-                     'TO':  greeting,
-                 },
-                 113,
-         },
-     },
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             113,
-     },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      </br>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             114,
-     },
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  android,
-             'EXPRESSION':      NEW_OBJECT,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':      ID,
-     {
-         'VALUE':  Android,
-     },
-     117,
-     },
-     117,
-         },
-         117,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  b,
-             'EXPRESSION':      FUNCTION_CALL,
-     {
-         'FUNCTION_ARGUMENTS':  {
- },
-         'ID':  greet,
-         'CLASS':  android,
-     },
-     118,
-         },
-         118,
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('CONCAT', {
-     '0':      ('STRING', {
-         'VALUE':          Android: ,
-     },
-     '1':      ('CONCAT', {
-         '0':              ID,
-             {
-                 'VALUE':  b,
-             },
-             119,
-         '1':          ('CONCAT', {
-             '0':              ('STRING', {
-                 'VALUE':                   Expected: ,
-             },
-             '1':                  TARROW,
-                 {
-                     'FROM':  android,
-                     'TO':  greeting,
-                 },
-                 119,
-         },
-     },
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             119,
-     },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':  ('STRING', {
-     'VALUE':      </br>,
- },
-         },
-         'ID':              ID,
-             {
-                 'VALUE':  echo,
-             },
-             120,
-     },
-         FUNCTION_CALL,
-         {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  bye,
-             'CLASS':  android,
-         },
-         121,
      ('FUNCTION_CALL', {
          'FUNCTION_ARGUMENTS':          {
              'POSITIONAL_ARGS':  ('STRING', {
@@ -657,25 +33,201 @@
              {
                  'VALUE':  require_once,
              },
-             123,
+             5,
+     },
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  bootstrap,
+             'EXPRESSION':  ('STRING', {
+     'VALUE':      
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- Select PHP and add styling -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
+<script>hljs.highlightAll();</script>
+,
+ },
+         },
+         8,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  CSS,
+             'EXPRESSION':  ('STRING', {
+     'VALUE':      
+.crop {
+    margin: 0 auto;
+    padding: 10px;
+    position: relative;
+}
+,
+ },
+         },
+         9,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  BODY_PADDING,
+             'EXPRESSION':  ('STRING', {
+     'VALUE':      md-4,
+ },
+         },
+         11,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  HEAD,
+             'EXPRESSION':      HTML,
+     {
+         'PROGRAM':  ('CONCAT', {
+     '0':          ID,
+         {
+             'VALUE':  bootstrap,
+         },
+         12,
+     '1':          HTML,
+         {
+             'PROGRAM':      ID,
+     {
+         'VALUE':  CSS,
+     },
+     12,
+             'LABEL':  {
+     'START':  <style>,
+     'END':  </style>,
+ },
+         },
+         12,
+ },
+         'LABEL':  {
+     'START':  <head>,
+     'END':  </head>,
+ },
+     },
+     12,
+         },
+         12,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  NAVBAR_ENTRIES,
+             'EXPRESSION':  ('ARRAY_FILLED', {
+     'ITEMS':      ('ARRAY_FILLED', {
+         'ITEMS':          ('('STRING', {'VALUE': 'Test Page'})', (
+             STRING,
+             {
+                 'VALUE':  /test,
+             },
+         )),
+     },
+ },
+         },
+         13,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  NAVBAR,
+             'EXPRESSION':      HTML,
+     {
+         'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':      HTML,
+     {
+         'PROGRAM':  [],
+         'LABEL':  {
+     'START':  <img width=200 src="https://framerusercontent.com/images/NanQ9Rq0puTaTJZFdmoqv3WVlY.png">,
+     'END':  None,
+ },
+     },
+     19,
+             'LABEL':  {
+     'START':  <a class="navbar-brand d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">,
+     'END':  </a>,
+ },
+         },
+         18,
+     '1':          FOREACH,
+         {
+             'ITERABLE':      ID,
+     {
+         'VALUE':  NAVBAR_ENTRIES,
+     },
+     23,
+             'VARIABLE':      ID,
+     {
+         'VALUE':  value,
+     },
+     23,
+             'PROGRAM':  ('FUNCTION_CALL', {
+     'FUNCTION_ARGUMENTS':      {
+         'POSITIONAL_ARGS':      HTML,
+     {
+         'PROGRAM':      GET_INDEX,
+     {
+         'EXPRESSION':      ID,
+     {
+         'VALUE':  value,
+     },
+     24,
+         'INDEX':  ('INT', {
+     'VALUE':      0,
+ },
+         'LINE':  24,
+     },
+     24,
+         'LABEL':  {
+     'START':  <a class="navbar-brand" href=$value[1]>,
+     'END':  </a>,
+ },
+     },
+     24,
+     },
+     'ID':          ID,
+         {
+             'VALUE':  echo,
+         },
+         24,
+ },
+         },
+         23,
+ },
+         'LABEL':  {
+     'START':  <nav class="navbar navbar-dark bg-dark p-2">,
+     'END':  </nav>,
+ },
+     },
+     17,
+         },
+         16,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ID,
+     {
+         'VALUE':  HEAD,
+     },
+     29,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             29,
      },
      ('FUNCTION_CALL', {
          'FUNCTION_ARGUMENTS':          {
              'POSITIONAL_ARGS':      ID,
      {
-         'VALUE':  Example,
+         'VALUE':  NAVBAR,
      },
-     125,
+     32,
          },
          'ID':              ID,
              {
-                 'VALUE':  use,
+                 'VALUE':  echo,
              },
-             125,
+             32,
      },
-     ('FUNCTION_CALL', {
-         'FUNCTION_ARGUMENTS':          {
-             'POSITIONAL_ARGS':      FUNCTION_CALL,
+         VARIABLE_ASSIGNMENT,
+         {
+             'ID':  greeting,
+             'EXPRESSION':      FUNCTION_CALL,
      {
          'FUNCTION_ARGUMENTS':  {
  },
@@ -684,108 +236,514 @@
          'NAMESPACE':  Example,
          'MEMBER':  greet,
      },
-     127,
+     35,
      },
-     127,
+     35,
+         },
+         35,
+         FUNCTION_CALL,
+         {
+             'FUNCTION_ARGUMENTS':  {
+ },
+             'ID':  ('FUNCTION_CALL', {
+     'FUNCTION_ARGUMENTS':      {
+         'POSITIONAL_ARGS':      ('STRING', {
+         'VALUE':          Hi,
+     },
+     ('STRING', {
+         'VALUE':          Hello,
+     },
+         NAMESPACE_MEMBER,
+         {
+             'NAMESPACE':  Example,
+             'MEMBER':  greet,
+         },
+         37,
+     },
+     'ID':          ID,
+         {
+             'VALUE':  str_replace,
+         },
+         37,
+ },
+         },
+         37,
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      HTML,
+     {
+         'PROGRAM':      HTML,
+     {
+         'PROGRAM':      HTML,
+     {
+         'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('NULL', NULL),
+             'LABEL':  {
+     'START':  <source srcset="https://media.discordapp.net/attachments/676522094875377665/1189681029032714290/nophp-light1.png?ex=659f0bcc&is=658c96cc&hm=bafae96b4ed62e0a81bdd949f704d4bea40ab30453fd8a96b06d78eae97ce1cf&=&format=webp&quality=lossless" media="(prefers-color-scheme: dark)">,
+     'END':  </source>,
+ },
+         },
+         45,
+     '1':          HTML,
+         {
+             'PROGRAM':  ('NULL', NULL),
+             'LABEL':  {
+     'START':  <img src="https://media.discordapp.net/attachments/676522094875377665/1189672810939940874/light-removebg-preview11.png?ex=659f0425&is=658c8f25&hm=52a79c19115bfc910fa9927607a14849a0138fb96f30b5272a1138990b00b8db&=&format=webp&quality=lossless" alt="Animated wave shape">,
+     'END':  </img>,
+ },
+         },
+         46,
+ },
+             'LABEL':  {
+     'START':  <picture>,
+     'END':  </picture>,
+ },
+         },
+         44,
+     '1':      ('CONCAT', {
+         '0':              HTML,
+             {
+                 'PROGRAM':  ('STRING', {
+     'VALUE':      Not Only PHP - A backwards compatible language focused on modern features and flexibility.,
+ },
+                 'LABEL':  {
+     'START':  <p class="lead">,
+     'END':  </p>,
+ },
+             },
+             49,
+         '1':          ('CONCAT', {
+             '0':                  HTML,
+                 {
+                     'PROGRAM':  ('NULL', NULL),
+                     'LABEL':  {
+     'START':  <hr class="my-4">,
+     'END':  </hr>,
+ },
+                 },
+                 50,
+             '1':                  HTML,
+                 {
+                     'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('STRING', {
+     'VALUE':      Live Debug:,
+ },
+             'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+         },
+         56,
+     '1':      ('CONCAT', {
+         '0':              HTML,
+             {
+                 'PROGRAM':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Your lucky number is ,
+     },
+     '1':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':  ('('INT', {'VALUE': '1'})', (
+     INT,
+     {
+         'VALUE':  100,
+     },
+ )),
          },
          'ID':              ID,
              {
-                 'VALUE':  echo,
+                 'VALUE':  rand,
              },
-             127,
+             57,
      },
-         CLASS_DECLARATION,
+ },
+                 'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+             },
+             57,
+         '1':          ('CONCAT', {
+             '0':                  HTML,
+                 {
+                     'PROGRAM':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Example greeting: ,
+     },
+     '1':          ID,
          {
-             'ID':  YourApp,
-             'PROGRAM':      ('FUNCTION_CALL', {
+             'VALUE':  greeting,
+         },
+         58,
+ },
+                     'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+                 },
+                 58,
+             '1':              ('CONCAT', {
+                 '0':                      HTML,
+                     {
+                         'PROGRAM':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Greeting length: ,
+     },
+     '1':      ('FUNCTION_CALL', {
          'FUNCTION_ARGUMENTS':          {
              'POSITIONAL_ARGS':      ID,
      {
          'VALUE':  greeting,
      },
-     130,
+     59,
          },
          'ID':              ID,
              {
-                 'VALUE':  public,
+                 'VALUE':  strlen,
              },
-             130,
+             59,
      },
-         FUNCTION_DECLARATION,
+ },
+                         'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+                     },
+                     59,
+                 '1':                  ('CONCAT', {
+                     '0':                          HTML,
+                         {
+                             'PROGRAM':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Greeting replaced (Hi -> Hello): ,
+     },
+     '1':      ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      ('STRING', {
+         'VALUE':          Hi,
+     },
+     ('STRING', {
+         'VALUE':          Hello,
+     },
+         ID,
          {
-             'FUNCTION_ARGUMENTS':  {
- },
-             'ID':  __construct,
-             'LEVEL':  public,
-             'PROGRAM':      VARIABLE_ASSIGNMENT,
-     {
-         'ID':  greeting,
-         'PARENT':  this,
-         'EXPRESSION':  ('STRING', {
-     'VALUE':      Welcome to NoPHP,
- },
-     },
-     132,
+             'VALUE':  greeting,
          },
-         131,
-         FUNCTION_DECLARATION,
-         {
-             'FUNCTION_ARGUMENTS':  {
+         60,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  str_replace,
+             },
+             60,
+     },
  },
-             'ID':  welcome,
-             'LEVEL':  public,
+                             'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+                         },
+                         60,
+                     '1':                          HTML,
+                         {
+                             'PROGRAM':  ('CONCAT', {
+     '0':      ('STRING', {
+         'VALUE':          Also visit the ,
+     },
+     '1':          HTML,
+         {
+             'PROGRAM':  ('STRING', {
+     'VALUE':      testing page,
+ },
+             'LABEL':  {
+     'START':  <a href="/test">,
+     'END':  </a>,
+ },
+         },
+         61,
+ },
+                             'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+                         },
+                         61,
+                 },
+             },
+         },
+     },
+ },
+             'LABEL':  {
+     'START':  <div class="col">,
+     'END':  </div>,
+ },
+         },
+         55,
+     '1':          HTML,
+         {
+             'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('STRING', {
+     'VALUE':      Examples:,
+ },
+             'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+         },
+         65,
+     '1':          HTML,
+         {
+             'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('STRING', {
+     'VALUE':      Simple template function,
+ },
+             'LABEL':  {
+     'START':  <p>,
+     'END':  </p>,
+ },
+         },
+         67,
+     '1':          HTML,
+         {
              'PROGRAM':  ('FUNCTION_CALL', {
      'FUNCTION_ARGUMENTS':      {
-         'POSITIONAL_ARGS':  ('CONCAT', {
-     '0':      ('STRING', {
-         'VALUE':          <h1>,
-     },
-     '1':      ('CONCAT', {
-         '0':              TARROW,
-             {
-                 'FROM':  this,
-                 'TO':  greeting,
-             },
-             135,
-         '1':          ('STRING', {
-             'VALUE':              </h1>,
-         },
-     },
+         'POSITIONAL_ARGS':  ('STRING', {
+     'VALUE':      
+function templateGreeting($name, $dash_link) {
+    return <div class="greeting">
+            <h1> "Welcome " . $name . "!" </h1>
+            . <p> "Glad to see you again" </p>
+            . <a href=$dash_link> "Go to your dashboard" </a>
+           </div>;
+}
+
+echo templateGreeting("John Doe", "/dash");
+,
  },
      },
      'ID':          ID,
          {
-             'VALUE':  echo,
+             'VALUE':  htmlspecialchars,
          },
-         135,
+         69,
+ },
+             'LABEL':  {
+     'START':  <code style="text-align: start !important;">,
+     'END':  </code>,
  },
          },
-         134,
-         },
-         129,
-         VARIABLE_ASSIGNMENT,
-         {
-             'ID':  app,
-             'EXPRESSION':      NEW_OBJECT,
-     {
-         'FUNCTION_ARGUMENTS':  {
+         68,
  },
-         'ID':      ID,
-     {
-         'VALUE':  YourApp,
+             'LABEL':  {
+     'START':  <pre>,
+     'END':  </pre>,
+ },
+         },
+         66,
+ },
+             'LABEL':  {
+     'START':  <div class="col">,
+     'END':  </div>,
+ },
+         },
+         64,
+ },
+                     'LABEL':  {
+     'START':  <div class="row">,
+     'END':  </div>,
+ },
+                 },
+                 54,
+         },
      },
-     138,
-     },
-     138,
-         },
-         138,
-         FUNCTION_CALL,
-         {
-             'FUNCTION_ARGUMENTS':  {
  },
-             'ID':  welcome,
-             'CLASS':  app,
+         'LABEL':  {
+     'START':  <div class="crop">,
+     'END':  </div>,
+ },
+     },
+     43,
+         'LABEL':  {
+     'START':  <div class="column">,
+     'END':  </div>,
+ },
+     },
+     42,
+         'LABEL':  {
+     'START':  <div class="container text-center mt-5">,
+     'END':  </div>,
+ },
+     },
+     41,
+         'LABEL':  {
+     'START':  <body class=$BODY_PADDING>,
+     'END':  </body>,
+ },
+     },
+     40,
          },
-         139,
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             39,
+     },
+     ('FUNCTION_CALL', {
+         'FUNCTION_ARGUMENTS':          {
+             'POSITIONAL_ARGS':      HTML,
+     {
+         'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':  ('CONCAT', {
+     '0':          HTML,
+         {
+             'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('STRING', {
+     'VALUE':      Home,
+ },
+         'LABEL':  {
+     'START':  <a href="#" class="nav-link px-2 text-muted">,
+     'END':  </a>,
+ },
+     },
+     85,
+             'LABEL':  {
+     'START':  <li class="nav-item">,
+     'END':  </li>,
+ },
+         },
+         85,
+     '1':      ('CONCAT', {
+         '0':              HTML,
+             {
+                 'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('STRING', {
+     'VALUE':      Features,
+ },
+         'LABEL':  {
+     'START':  <a href="#" class="nav-link px-2 text-muted">,
+     'END':  </a>,
+ },
+     },
+     86,
+                 'LABEL':  {
+     'START':  <li class="nav-item">,
+     'END':  </li>,
+ },
+             },
+             86,
+         '1':          ('CONCAT', {
+             '0':                  HTML,
+                 {
+                     'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('STRING', {
+     'VALUE':      Pricing,
+ },
+         'LABEL':  {
+     'START':  <a href="#" class="nav-link px-2 text-muted">,
+     'END':  </a>,
+ },
+     },
+     87,
+                     'LABEL':  {
+     'START':  <li class="nav-item">,
+     'END':  </li>,
+ },
+                 },
+                 87,
+             '1':              ('CONCAT', {
+                 '0':                      HTML,
+                     {
+                         'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('STRING', {
+     'VALUE':      FAQs,
+ },
+         'LABEL':  {
+     'START':  <a href="#" class="nav-link px-2 text-muted">,
+     'END':  </a>,
+ },
+     },
+     88,
+                         'LABEL':  {
+     'START':  <li class="nav-item">,
+     'END':  </li>,
+ },
+                     },
+                     88,
+                 '1':                      HTML,
+                     {
+                         'PROGRAM':      HTML,
+     {
+         'PROGRAM':  ('STRING', {
+     'VALUE':      About,
+ },
+         'LABEL':  {
+     'START':  <a href="#" class="nav-link px-2 text-muted">,
+     'END':  </a>,
+ },
+     },
+     89,
+                         'LABEL':  {
+     'START':  <li class="nav-item">,
+     'END':  </li>,
+ },
+                     },
+                     89,
+             },
+         },
+     },
+ },
+             'LABEL':  {
+     'START':  <ul class="nav justify-content-center border-bottom pb-3 mb-3">,
+     'END':  </ul>,
+ },
+         },
+         84,
+     '1':          HTML,
+         {
+             'PROGRAM':  ('STRING', {
+     'VALUE':      © 2023 ByteFor,
+ },
+             'LABEL':  {
+     'START':  <p class="text-center text-muted">,
+     'END':  </p>,
+ },
+         },
+         91,
+ },
+         'LABEL':  {
+     'START':  <footer class="fixed-bottom py-3 my-4">,
+     'END':  </footer>,
+ },
+     },
+     83,
+         },
+         'ID':              ID,
+             {
+                 'VALUE':  echo,
+             },
+             82,
+     },
      },
      1,
