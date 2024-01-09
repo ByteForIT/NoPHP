@@ -172,10 +172,10 @@ Rule 168   empty -> <empty>  [precedence=left, level=1]
 
 Unused terminals:
 
-    ATTR_LEVEL
-    TELSE
     SANDBOX
     IN
+    TELSE
+    ATTR_LEVEL
 
 Terminals, with rules where they appear:
 
