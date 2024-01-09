@@ -4,5 +4,5 @@ secret_key: NJD92H4R48HF9H92FH
 routes:
   /: pages/index.php
   /store: pages/store.php
-resources:
-  
+static:
+  /files/<path:path>: static/
