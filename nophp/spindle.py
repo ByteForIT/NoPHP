@@ -1,5 +1,7 @@
+from cmath import inf
+import os
 import random
-from flask import Flask
+from flask import Flask, send_file, send_from_directory
 # Lang
 from .lang.compiler import Compiler
 from .lang.lexer import PyettyLexer
@@ -59,6 +61,9 @@ if len(argv) < 2:
     raise Exception("Usage: python3 p <input>")
 
 config = yaml.load(open(argv[1],"r"), Loader)
+
+# Consts
+BIGGEST_PAGES = 9_999_999_999
 
 class SpindleApp:
     def __init__(self) -> None:
@@ -177,14 +182,15 @@ class SpindleApp:
         
     
     def register(self, route, file):
+        global BIGGEST_PAGES
         def _func(*args, **kwargs):
             _c = Compiler([])
             out = self.build_sp(file, _c)
             return out
         
-        name = f"_func_" + str(random.randint(0,9999))
+        name = f"_func_" + str(random.randint(0,BIGGEST_PAGES))
         while name in self.functions:
-            name = f"_func_" + str(random.randint(0,9999))
+            name = f"_func_" + str(random.randint(0,BIGGEST_PAGES))
 
 
         _func.__name__ = _func.__qualname__ = name
@@ -192,6 +198,28 @@ class SpindleApp:
         setattr(self, name, _func)
         print("Adding", _func.__name__, route)
         self.app.route(route, methods=['GET', 'POST'])(getattr(self, name))
+
+
+    def register_static(self, route, file):
+        global BIGGEST_PAGES
+        def _func(path):
+            print(file, path)
+            return send_file(
+                os.path.join(
+                    os.getcwd(),
+                    os.path.join(file, path)
+                )
+            )
+        
+        name = f"_sfunc_" + str(random.randint(0,BIGGEST_PAGES))
+        while name in self.functions:
+            name = f"_sfunc_" + str(random.randint(0,BIGGEST_PAGES))
+
+        _func.__name__ = _func.__qualname__ = name
+
+        setattr(self, name, _func)
+        print("Adding", _func.__name__, route, file)
+        self.app.route(route)(getattr(self, name))
         
         
 app = SpindleApp()
@@ -203,6 +231,16 @@ for route in config['routes']:
         route,
         config['routes'][route]
     )
+    
+# if static routes need to be defined, enable them
+if 'static' in config:
+    for route in config['static']:
+        app.register_static(
+            route,
+            config['static'][route]
+        )
+
+print(app.app.url_map)
 
 if __name__ == "__main__":
     app.app.run(host='127.0.0.1', port=8000, debug=True)
