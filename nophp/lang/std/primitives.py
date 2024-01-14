@@ -1,6 +1,5 @@
 from ..exceptions import TranspilerExceptions, Warn
 from ..module import Module
-from ..std.db import SqlConnector
 from ..types import *
 
 
@@ -30,79 +29,6 @@ class CommonMod(Module):
 
         return values
     
-    def safely_resolve(self, var):
-        # Dependencies
-        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
-        if type(var) == tuple:
-            resolved = resolution_module(var)
-        else: resolved = var
-        value: BasicType = None
-
-        if type(resolved) == Auto:
-            resolved = resolved.match()
-
-        if type(resolved) == ID:
-            value = resolved.value
-            v = self.compiler_instance.get_variable(value)
-            # print(v)
-            if v["type"] == String:
-                value = self.remove_quotes(v['object'].value)
-            elif v["type"] is None:
-                value = ""
-            else:
-                value = v['object'].value
-        elif type(resolved) == String:
-            value = self.remove_quotes(resolved.value)
-        elif type(resolved) == Int32:
-            value = resolved.value
-        elif type(resolved) == sInnerMut:
-            value = func_module.run_sInnerMut(resolved).value
-        elif type(resolved) == SqlConnector:
-            value = resolved.value
-        elif type(resolved) == DynArray:
-            _value = resolved.value
-            value = []
-            for i in _value:
-                value.append(self.safely_resolve(i)) 
-        else:
-            print(f"Couldnt resolve {resolved} in primites, returning None")
-
-        return value
-    
-    def ref_resolve(self, var):
-        # Dependencies
-        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
-        if type(var) == tuple:
-            resolved = resolution_module(var)
-        else: resolved = var
-        value: BasicType = None
-
-
-        if type(resolved) == ID:
-            value = resolved.value
-            v = self.compiler_instance.get_variable(value)
-            # print(v)
-            if v["type"] == String:
-                value = v['object']
-            elif v["type"] is None:
-                value = String("")
-            else:
-                value = v['object']
-        elif type(resolved) == String:
-            value = resolved
-        elif type(resolved) == Int32:
-            value = resolved
-        elif type(resolved) == sInnerMut:
-            value = func_module.run_sInnerMut(resolved)
-        elif type(resolved) == SqlConnector:
-            value = resolved
-        elif type(resolved) == DynArray:
-            value = resolved
-        else:
-            value = resolved
-        return value
 
 
 # count($value) -> len($value)

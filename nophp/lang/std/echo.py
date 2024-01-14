@@ -43,6 +43,11 @@ class EchoMod(Module):
                 value = self.remove_quotes(v.value) # TODO: ADD class instance type
             elif isinstance(v['object'],Compiler):
                 value = f"{v['object'].namespace}()"
+            elif v['type'] == Bool:
+                value = v['object'].value
+            elif v['type'] == str:
+                # Legacy
+                value = v['object']
             else:
                 print(f"No known type {v['type']}")
                 value = v['object']
@@ -53,5 +58,7 @@ class EchoMod(Module):
 
         if len(values) > 1:
             raise TranspilerExceptions.TooManyValues(values, "echo($msg)")
+        
+        print(value)
 
         return str(value)

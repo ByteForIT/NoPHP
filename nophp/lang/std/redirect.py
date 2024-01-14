@@ -1,6 +1,7 @@
 from ..exceptions import TranspilerExceptions, Warn
 from ..module import Module
 from ..types import *
+from flask import session
 
 class RedirectMod(Module):
     name="redirect"
@@ -10,45 +11,39 @@ class RedirectMod(Module):
         super().__init__()
         self.compiler_instance = compiler_instance
 
+    def base(self, tree, ref=False):
+        values = []
+
+        if 'FUNCTION_ARGUMENTS' not in tree:
+            # Advanced handling
+            for var in tree:
+                value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+                values.append(value)
+        else:
+            if 'POSITIONAL_ARGS' in tree['FUNCTION_ARGUMENTS']:
+                for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
+
+                    value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+
+                    values.append(value)
+
+        return values
+
     def proc_tree(self, tree):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        values = []
+        values = self.base(tree)
 
-        for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
-            v = resolution_module(var)
-            value: BasicType = None
-            
-            if type(v) == ID:
-                value = v.value
-                v = self.compiler_instance.get_variable(value)
-            else:
-                v = {
-                    "object": v,
-                    "type": type(v)
-                    }
-                
-            if v["type"] == String:
-                value = self.remove_quotes(v['object'].value)
-            elif v["type"] == type(None):
-                value = ""
-            elif v['type'] == Session:
-                value = str(dict(v["object"].value))
-            elif v['type'] == Auto:
-                value = self.remove_quotes(String(v['object'].value).value)
-            elif type(v) == String:
-                value = self.remove_quotes(v.value)
-            else:
-                print(f"No known type {v['type']}")
-                value = v['object'].value
 
-            
-
-            values.append(value) 
-
-        if len(values) > 1:
-            raise TranspilerExceptions.TooManyValues(values, "redirect($msg)")
+        if len(values) > 2:
+            raise TranspilerExceptions.TooManyValues(values, "redirect($msg) or redirect($msg, $events[str])")
         
 
-
-        return String(f'<meta http-equiv="refresh" content="0;url={values[0]}">')
+        if len(values) == 1:
+            return String(f'<meta http-equiv="refresh" content="0;url={values[0]}">')
+        elif len(values) == 2:
+            # print(values[1])
+            session['events'] = values[1]
+            return String(f'<meta http-equiv="refresh" content="0;url={values[0]}">')
+        else:
+            raise TranspilerExceptions.Generic("Not enough values supplied to redirect")

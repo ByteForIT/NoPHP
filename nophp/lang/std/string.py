@@ -3,7 +3,6 @@
 """
 from ..exceptions import TranspilerExceptions
 from ..module import Module
-from ..std.db import SqlConnector
 from ..types import DynArray, String, BasicType, ID, Int32, sInnerMut
 
 class StrMod(Module):
@@ -22,77 +21,7 @@ class StrMod(Module):
                 values.append(value)
 
         return values
-    
-    def safely_resolve(self, var):
-        # Dependencies
-        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
-        if type(var) == tuple:
-            resolved = resolution_module(var)
-        else: resolved = var
-        value: BasicType = None
 
-        if type(resolved) == ID:
-            value = resolved.value
-            v = self.compiler_instance.get_variable(value)
-            # print(v)
-            if v["type"] == String:
-                value = self.remove_quotes(v['object'].value)
-            elif v["type"] is None:
-                value = ""
-            else:
-                value = v['object'].value
-        elif type(resolved) == String:
-            value = self.remove_quotes(resolved.value)
-        elif type(resolved) == str: # TODO: Fix whatever is causing legacy behavior (Python strings)
-            value = resolved
-        elif type(resolved) == Int32:
-            value = resolved.value
-        elif type(resolved) == sInnerMut:
-            value = func_module.run_sInnerMut(resolved).value
-        elif type(resolved) == SqlConnector:
-            value = resolved.value
-        elif type(resolved) == DynArray:
-            _value = resolved.value
-            value = []
-            for i in _value:
-                value.append(self.safely_resolve(i)) 
-
-        return value
-    
-    def ref_resolve(self, var):
-        # Dependencies
-        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
-        if type(var) == tuple:
-            resolved = resolution_module(var)
-        else: resolved = var
-        value: BasicType = None
-
-
-        if type(resolved) == ID:
-            value = resolved.value
-            v = self.compiler_instance.get_variable(value)
-            # print(v)
-            if v["type"] == String:
-                value = v['object']
-            elif v["type"] is None:
-                value = String("")
-            else:
-                value = v['object']
-        elif type(resolved) == String:
-            value = resolved
-        elif type(resolved) == Int32:
-            value = resolved
-        elif type(resolved) == sInnerMut:
-            value = func_module.run_sInnerMut(resolved)
-        elif type(resolved) == SqlConnector:
-            value = resolved
-        elif type(resolved) == DynArray:
-            value = resolved
-        else:
-            value = resolved
-        return value
 
 class StrLenMod(StrMod):
     name = "strlen"

@@ -72,16 +72,6 @@ class DbCommonMod(Module):
         return value
     
 
-class SqlConnector(BasicType):
-    '''
-    SQL connection wrapper object 
-    '''
-    size = 0
-    abbr_name = 'Connection'
-    def __init__(self, connection):
-        self.value = connection
-        super().__init__()
-
 # sql_connect("db.sql")
 class DbConnect(DbCommonMod):
     name="DBCONN"

@@ -265,3 +265,24 @@ class Request:
     def value(self):
         from flask import request
         return request
+    
+class SqlConnector(BasicType):
+    '''
+    SQL connection wrapper object 
+    '''
+    size = 0
+    abbr_name = 'Connection'
+    def __init__(self, connection):
+        self.value = connection
+        super().__init__()
+
+
+class Salt(BasicType):
+    '''
+    Salt type 
+    '''
+    size = 0
+    abbr_name = 'Salt'
+    def __init__(self, salt):
+        self.value = salt
+        super().__init__()

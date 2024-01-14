@@ -1,0 +1,1 @@
+poetry build && pip install dist/nophp-0.1.5-py3-none-any.whl --force-reinstall  && python -m nophp

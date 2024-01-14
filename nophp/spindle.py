@@ -1,7 +1,7 @@
 from cmath import inf
 import os
 import random
-from flask import Flask, send_file, send_from_directory
+from flask import Flask, jsonify, send_file, send_from_directory
 # Lang
 from .lang.compiler import Compiler
 from .lang.lexer import PyettyLexer
@@ -9,12 +9,15 @@ from .lang.pparser import PyettyParser
 from .lang.types import Request
 from .splitter import split_php
 
+import json as _json
+
 # Load modules
 from .lang.modules import (
     BoolMod,
     ConditionalMod,
     ForEachMod,
     GetIndexMod,
+    IncludeMod,
     InternalMod,
     MathMod,
     Module,
@@ -48,19 +51,35 @@ from .lang.std import (
     session,
     redirect,
     primitives,
-    db
+    db,
+    bcrypt,
+    json,
 )
 
 # Read wool config
-from sys import argv
+# from sys import argv
+import argparse
 
 import yaml
 from yaml import Loader
-flags = ''
-if len(argv) < 2: 
-    raise Exception("Usage: python3 p <input>")
 
-config = yaml.load(open(argv[1],"r"), Loader)
+parser = argparse.ArgumentParser(
+    prog='NoPHP server',
+    description='NoPHP Spindle server',
+    epilog='Write Fast. Write More. Write NoPHP.')
+
+parser.add_argument('filename')  
+parser.add_argument('-o', '--host', default='localhost')
+parser.add_argument('-p', '--port', default=8000)
+parser.add_argument('-d', '--debug', action='store_true')
+
+args = parser.parse_args()
+host = args.host
+port = int(args.port)
+debug = args.debug
+conf = args.filename
+
+config = yaml.load(open(conf,"r"), Loader)
 
 # Consts
 BIGGEST_PAGES = 9_999_999_999
@@ -75,7 +94,7 @@ class SpindleApp:
 
 
 
-    def build_sp(self, file, _c):
+    def build_sp(self, file, _c: Compiler):
         text = open(file,"r").read()
         php, html = split_php(text)
         toks = self.lexer.tokenize(
@@ -150,10 +169,14 @@ class SpindleApp:
 
             **db.build_funcs(_c),
             **primitives.build_funcs(_c),
-
+            **bcrypt.build_funcs(_c),
+            **json.build_funcs(_c),
             
             "require_once": {
                 "run_func": RequireOnceMod(_c)
+            },
+            "include": {
+                "run_func": IncludeMod(_c)
             },
             "use": {
                 "run_func": UseMod(_c)
@@ -168,7 +191,7 @@ class SpindleApp:
                 "run_func": ProtectedMod(_c)
             }
         })
-        c = _c.new_instance(
+        c: Compiler = _c.new_instance(
             namespace='main',
             sync="b"
         )
@@ -220,7 +243,27 @@ class SpindleApp:
         setattr(self, name, _func)
         print("Adding", _func.__name__, route, file)
         self.app.route(route)(getattr(self, name))
+
+    def register_json(self, route, file):
+        global BIGGEST_PAGES
+        def _func(*args, **kwargs):
+            _c = Compiler([])
+            out = self.build_sp(file, _c)
+            return jsonify(_json.loads(out))
         
+        name = f"_jfunc_" + str(random.randint(0,BIGGEST_PAGES))
+        while name in self.functions:
+            name = f"_jfunc_" + str(random.randint(0,BIGGEST_PAGES))
+
+        _func.__name__ = _func.__qualname__ = name
+
+        setattr(self, name, _func)
+        print("Adding", _func.__name__, route, file)
+        self.app.route(route)(getattr(self, name))
+        
+    def run(self):
+        global host, port
+        self.app.run(host=host, port=port, debug=debug)
         
 app = SpindleApp()
 app.app.secret_key = config['secret_key'] if "secret_key" in config else ""
@@ -240,7 +283,15 @@ if 'static' in config:
             config['static'][route]
         )
 
+if 'json' in config:
+    for route in config['json']:
+        app.register_json(
+            route,
+            config['json'][route]
+        )
+
 print(app.app.url_map)
 
 if __name__ == "__main__":
-    app.app.run(host='127.0.0.1', port=8000, debug=True)
+    print("Starting on {host}:{port}".format(host=host, port=port))
+    app.run(host=host, port=port, debug=debug)

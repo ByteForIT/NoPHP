@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "nophp"
-version = "0.1.0"
-description = ""
+version = "0.1.6rc-1"
+description = "Not Only PHP - A backwards compatible language focused on modern features and flexibility."
 authors = ["Artur Z <doslunar8@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 
 
 [build-system]

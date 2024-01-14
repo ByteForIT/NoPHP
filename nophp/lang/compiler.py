@@ -205,7 +205,7 @@ class Compiler:
                 
                     if self.actions[action[0]].type == Module.MODULE_TYPES.SPECIAL_ACTION:
                         if ret != None:
-                            if type(action[1]['ID']) == tuple and\
+                            if 'ID' in action[1] and type(action[1]['ID']) == tuple and\
                                 self.get_action("RESOLUT")(action[1]['ID']).value == 'echo':
                                 self.finished.append(ret)
                     elif self.actions[action[0]].type == Module.MODULE_TYPES.SPECIAL_ACTION_FUNC:

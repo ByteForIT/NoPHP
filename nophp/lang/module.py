@@ -1,3 +1,4 @@
+import markupsafe
 from .types import *
 from .exceptions import ModuleExceptions
 
@@ -62,6 +63,7 @@ class Module:
     def proc_tree(self, tree) -> dict: "Return a dict containing values processed from the tree"
 
     # Format
+    # TODO: Remove this as it's not used
     def _constructor(
         self,
         arguments: dict
@@ -75,46 +77,93 @@ class Module:
         except Exception:
             raise Exception(f"In '{self.name}' - Failed to unpack elements. Perhaps you need to set `no_construct` to True to avoid this module's construction?")
 
-    def safely_resolve(self, var, instance=None):
-        if instance is None:
-            instance = self.compiler_instance
+    def safely_resolve(self, var):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
         if type(var) == tuple:
             resolved = resolution_module(var)
         else: resolved = var
-        value: BasicType = resolved
+        value: BasicType = None
+
+        print(resolved)
 
         if type(resolved) == Auto:
-            value = self.safely_resolve(resolved.value)
+            resolved = resolved.match()
 
-        # print("\t\t", value)
-
-        if type(value) == ID:
-            value = value.value
-            v = instance.get_variable(value)
-            # print("var:",v)
-            if v["type"] == String:
-                value = self.remove_quotes(v['object'].value)
-            elif v["type"] is None:
-                value = ""
-            elif v["type"] == Auto:
-                value = self.safely_resolve(v["object"].value)
-            elif v["type"] == ID:
-                value = self.safely_resolve(v["object"], instance=instance.parent)
-            else:
-                value = v['object'].value
-        elif type(value) == String:
-            value = self.remove_quotes(value.value)
-            # print("\t", value)
-        elif type(value) == Int32:
-            value = value.value
-        elif type(value) == sInnerMut:
-            value = func_module.run_sInnerMut(value).value
-        elif type(value) == DynArray:
-            _value = value.value
+        if type(resolved) == ID:
+            value = resolved.value
+            v = self.compiler_instance.get_variable(value)
+            # print(v)
+            value = self.safely_resolve(v['object'])
+        elif type(resolved) == String:
+            value = self.remove_quotes(resolved.value)
+        elif type(resolved) == Int32:
+            value = resolved.value
+        elif type(resolved) == sInnerMut:
+            value = func_module.run_sInnerMut(resolved).value
+        elif type(resolved) == type(self.compiler_instance):
+            value = resolved
+        elif type(resolved) == SqlConnector:
+            value = resolved.value
+        elif type(resolved) == Salt:
+            value = resolved.value
+        elif type(resolved) == DynArray:
+            _value = resolved.value
             value = []
             for i in _value:
                 value.append(self.safely_resolve(i)) 
+        elif type(resolved) == Map:
+            _value = resolved.value
+            value = {}
+            for key in _value:
+                value[
+                    self.safely_resolve(key)
+                ] = self.safely_resolve(_value[key])
+                
+        # Legacy
+        # Markup safe breaks this a bit...
+        elif type(resolved) in [int, str, list, tuple, float, markupsafe.Markup]:
+            value = resolved
+        elif type(resolved) == Auto:
+            value = resolved.value
+        else:
+            print(f"Couldnt resolve {resolved} of {type(resolved)} in Module, returning None")
+
+        print(resolved, value)
+
+        return value
+    
+    def ref_resolve(self, var):
+        # Dependencies
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
+        func_module: Module = self.compiler_instance.get_action('FUNCTION_CALL')
+        if type(var) == tuple:
+            resolved = resolution_module(var)
+        else: resolved = var
+        value: BasicType = None
+
+
+        if type(resolved) == ID:
+            value = resolved.value
+            v = self.compiler_instance.get_variable(value)
+            # print(v)
+            if v["type"] == String:
+                value = v['object']
+            elif v["type"] is None:
+                value = String("")
+            else:
+                value = v['object']
+        elif type(resolved) == String:
+            value = resolved
+        elif type(resolved) == Int32:
+            value = resolved
+        elif type(resolved) == sInnerMut:
+            value = func_module.run_sInnerMut(resolved)
+        elif type(resolved) == SqlConnector:
+            value = resolved
+        elif type(resolved) == DynArray:
+            value = resolved
+        else:
+            value = resolved
         return value

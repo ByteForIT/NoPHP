@@ -150,17 +150,7 @@ class HTMLMod(Module):
         if len(tree['PROGRAM']) == 0:
             value = ""
         elif tree['PROGRAM'][0] == 'HTML':
-            
             value = self.__class__(self.compiler_instance)(tree['PROGRAM'][1])
-        # Not sure if ths should be deleted,
-        # it used to handle the ID's and etc, but shouldn't be viable anymore
-        # as we can just use the RESOLUT for this
-        #
-        # elif tree['PROGRAM'][0] == 'ID':
-        #     # Get value
-        #     value = self.compiler_instance.get_variable(tree['PROGRAM'][1]['VALUE'])['object'].value
-        # else:
-        #     value = tree['PROGRAM'][1]['VALUE']
         else:
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
 
@@ -362,6 +352,79 @@ class RequireOnceMod(Module):
             instance
         )
 
+
+class IncludeMod(Module):
+    name="INCLUDE"
+    type = Module.MODULE_TYPES.SPECIAL_ACTION
+
+    def __init__(self, compiler_instance):
+        super().__init__()
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        # Dependencies
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
+        values = []
+
+        console.log("[red]<===>[/red] Include")
+
+        if len(tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']) > 1:
+            raise TranspilerExceptions.TooManyValues(values, "include($_path)")
+        
+
+        for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
+            resolved = resolution_module(var)
+            value: BasicType = None
+            
+            if type(resolved) == ID:
+                value = resolved.value
+                v = self.compiler_instance.get_variable(value)
+                if v["type"] == String:
+                    value = self.remove_quotes(v['object'].value)
+                elif v["type"] == type(None):
+                    value = ""
+                else:
+                    value = v['object'].value
+            elif type(resolved) == String:
+                value = self.remove_quotes(resolved.value)
+            
+
+            values.append(value) 
+
+        # Load file then lex and parse it
+        tokens = None
+        with open(value, "r") as f:
+            text = f.read()
+            php, html = split_php(text)
+
+            lexer = PyettyLexer()
+            parser = PyettyParser()
+
+            tokens = parser.parse(
+                lexer.tokenize(php)
+            )
+
+
+        old_nm = self.compiler_instance.namespace
+
+        instance = self.compiler_instance.new_instance(
+            namespace= value+"_sub",# Set namespace
+            tree=tokens, # Load file here with lexer & parser
+            sync=""
+        )
+
+        instance.finished = []
+
+        instance.run()
+
+        self.compiler_instance.namespace = old_nm
+
+        self.compiler_instance.namespaces[
+            instance.namespace
+        ] = instance
+
+
+        return String('\n'.join([str(el) for el in self.compiler_instance.finished]))
         
 
 class GetIndexMod(Module):
@@ -381,12 +444,16 @@ class GetIndexMod(Module):
         name = resolution_module(tree['EXPRESSION'])
         index = resolution_module(tree['INDEX'])
 
+        # print(index)
+        # print(name)
+
         if type(index) == String:
             index_value = self.remove_quotes(index.value)
         else: index_value = index.value
 
         if type(name) == ID:
             var = self.compiler_instance.get_variable(name.value)
+            # print(var)
             if var['type'] == DynArray:
                 if 0 <= index_value < var['object'].length:
                     return var['object'].value[index_value]
@@ -407,6 +474,12 @@ class GetIndexMod(Module):
                     return Auto(getattr(var['object'].value, index_value.lower()), type="basic")
                 else:
                     # print("Request contains:",list(var['object'].value.__dir__()))
+                    return Nil()
+            elif var['type'] == Map:
+                if index_value in var['object'].value:
+                    print("Found mapping")
+                    return Auto(var['object'].value[index_value], "basic")
+                else:
                     return Nil()
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray, Session, Request], line)
@@ -440,7 +513,8 @@ class GetIndexMod(Module):
                     return Auto(name.value.value[index_value], "basic")
                 else:
                     raise TranspilerExceptions.OutOfBounds(index_value, name.value.length)
-            raise TranspilerExceptions.Generic(f"{name.value}")
+            # raise TranspilerExceptions.Generic(f"Can't get index on {name.value}")
+            return Nil()
         elif type(name) == Nil:
             return Nil()
         else:
@@ -560,6 +634,14 @@ class ResolutionMod(Module):
             items = [self.proc_tree(item) for item in tree[1]['ITEMS']]
             return DynArray(items, type=List.GUESS)
         
+        elif tree[0] == 'ASSOC_ARRAY':
+            items = {}
+            for item in tree[1]['ITEMS']:
+                key = self.proc_tree(item[0])
+                value = self.proc_tree(item[1])
+                items[key] = value
+            return Map(items)
+        
         elif tree[0] == 'MAP':
             if len(tree[1]['ITEMS']) == 0:
                 items = dict()
@@ -614,6 +696,16 @@ class ResolutionMod(Module):
         elif tree[0] in ["OR", "AND"]:
             BoolMod: Module = self.compiler_instance.get_action("BOOLMOD")
             return BoolMod(tree)
+        
+
+        elif tree[0] in [
+            'EQEQ',
+            'NOT_EQEQ',
+            'LESS',
+            'GREATER'
+            ]:
+            CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
+            return CondMod(tree)
 
         raise Exception(f"[RESOLUT] Failed to match {tree} is '{tree[0]}' supported?")
 
@@ -1284,9 +1376,14 @@ class ConditionalMod(Module):
     def proc_tree(self, tree):
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
 
-        if_condition = tree['IF'][1]['CONDITION']
-        if_program = tree['IF'][1]['CODE']
-        else_pr = None if tree["ELSE"][0] is None else tree["ELSE"]
+        if 'IF' in tree:
+            if_condition = tree['IF'][1]['CONDITION']
+            if_program = tree['IF'][1]['CODE']
+            else_pr = None if tree["ELSE"][0] is None else tree["ELSE"]
+        else:
+            if_condition = tree
+            if_program = None
+            else_pr = None
 
         conditionals = {
             'EQEQ': self.equal,
@@ -1328,12 +1425,15 @@ class ConditionalMod(Module):
         else:
             c = condition(if_condition[1])
             # print(c)
-        if c:
+        if c and if_program is not None:
             self.compiler_instance.run(if_program)
+            return Bool(True)
         else:
             if else_pr is not None:
                 self.compiler_instance.run(else_pr[1]['CODE'])
-
+            return Bool(False)
+        
+        
 class BoolMod(Module):
     name="BOOLMOD"
     type = Module.MODULE_TYPES.SPECIAL_ACTION
