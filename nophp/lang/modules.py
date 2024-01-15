@@ -368,6 +368,9 @@ class IncludeMod(Module):
 
         console.log("[red]<===>[/red] Include")
 
+
+        Warn("Include is broken, please make sure to use the latest RC versions for fastest patches")
+
         if len(tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']) > 1:
             raise TranspilerExceptions.TooManyValues(values, "include($_path)")
         
