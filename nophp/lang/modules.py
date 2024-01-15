@@ -463,7 +463,7 @@ class GetIndexMod(Module):
                 else:
                     print(var['object'])
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
-            # TODO: Session and Request types need to be compatible with printing out in echo
+            # DONE: Session and Request types need to be compatible with printing out in echo
             elif var['type'] == Session:
                 if index_value in var['object'].value:
                     # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]), var['object'].value)
