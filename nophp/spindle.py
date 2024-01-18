@@ -54,6 +54,7 @@ from .lang.std import (
     db,
     bcrypt,
     json,
+    internal,
 )
 
 # Read wool config
@@ -171,6 +172,7 @@ class SpindleApp:
             **primitives.build_funcs(_c),
             **bcrypt.build_funcs(_c),
             **json.build_funcs(_c),
+            **internal.build_funcs(_c),
             
             "require_once": {
                 "run_func": RequireOnceMod(_c)

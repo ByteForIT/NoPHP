@@ -162,6 +162,9 @@ class Compiler:
             else:
                 self.actions[module.name] = modobj
 
+            if module.type == Module.MODULE_TYPES.SPECIAL_ACTION_FUNC:
+                self.functions[module.name] = modobj
+
             self._modules[module.name] = modobj
 
     def add_builtin_functions(self, funcs):

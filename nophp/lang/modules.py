@@ -1602,6 +1602,31 @@ class InternalMod(Module):
     def namespace(self, line):
         return print(self.compiler_instance.namespace)
     
+    def debug(self, line):
+        echo: Module = self.compiler_instance.get_action('echo')
+        self.compiler_instance.finished.append(
+f"""
+ <table>
+  <tr>
+    <th>NoPHP Live Debug</th>
+  </tr>
+  <tr>
+    <td>Current Namespace</td>
+    <td>{self.compiler_instance.namespace}</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Variables</td>
+    {
+        '<br>'.join(
+            ["<tr><td>{}</td><td><pre><code>{}</code></pre></td></tr>".format(v, self.compiler_instance.get_variable(v)['object']) for v in self.compiler_instance.variables]
+            )
+    }
+  </tr>
+</table> 
+"""
+        )
+
     def die(self, line):
         self.compiler_instance.stop = True
     
@@ -1613,7 +1638,8 @@ class InternalMod(Module):
         calls = {
             "panic": self.panic,
             "nm": self.namespace,
-            "die": self.die
+            "die": self.die,
+            "debug": self.debug,
         }
 
         if value.value in calls:

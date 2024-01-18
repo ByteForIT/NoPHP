@@ -5,59 +5,21 @@ from ..types import *
 
 class EchoMod(Module):
     name="echo"
-    type = Module.MODULE_TYPES.FUNCTION
+    type = Module.MODULE_TYPES.SPECIAL_ACTION_FUNC
 
     def __init__(self, compiler_instance):
         super().__init__()
         self.compiler_instance = compiler_instance
 
-    def proc_tree(self, tree):
+    def proc_tree(self, tree, stubborn=False):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
-        values = []
-
-        # print(tree)
-
-        for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
-            v = resolution_module(var)
-            value: BasicType = None
-            
-            if type(v) == ID:
-                value = v.value
-                v = self.compiler_instance.get_variable(value)
-            else:
-                v = {
-                    "object": v,
-                    "type": type(v)
-                    }
-                
-            if v["type"] == String:
-                value = self.remove_quotes(v['object'].value)
-            elif v["type"] == type(None):
-                value = ""
-            elif v['type'] == Session:
-                value = str(dict(v["object"].value))
-            elif v['type'] == Auto:
-                value = str(v['object'].value)
-            elif type(v) == String:
-                value = self.remove_quotes(v.value) # TODO: ADD class instance type
-            elif isinstance(v['object'],Compiler):
-                value = f"{v['object'].namespace}()"
-            elif v['type'] == Bool:
-                value = v['object'].value
-            elif v['type'] == str:
-                # Legacy
-                value = v['object']
-            else:
-                print(f"No known type {v['type']}")
-                value = v['object']
-
-            
-
-            values.append(value) 
+        values = self.base(tree, ref=stubborn)
 
         if len(values) > 1:
             raise TranspilerExceptions.TooManyValues(values, "echo($msg)")
+        
+        value = values[0]
         
         print(value)
 

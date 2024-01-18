@@ -77,6 +77,24 @@ class Module:
         except Exception:
             raise Exception(f"In '{self.name}' - Failed to unpack elements. Perhaps you need to set `no_construct` to True to avoid this module's construction?")
 
+    def base(self, tree, ref=False):
+        values = []
+
+        if 'FUNCTION_ARGUMENTS' not in tree:
+            # Advanced handling
+            for var in tree:
+                value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+                values.append(value)
+        else:
+            if 'POSITIONAL_ARGS' in tree['FUNCTION_ARGUMENTS']:
+                for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
+
+                    value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+
+                    values.append(value)
+
+        return values
+
     def safely_resolve(self, var):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
