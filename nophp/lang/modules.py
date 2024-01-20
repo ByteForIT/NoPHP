@@ -151,6 +151,16 @@ class HTMLMod(Module):
             value = ""
         elif tree['PROGRAM'][0] == 'HTML':
             value = self.__class__(self.compiler_instance)(tree['PROGRAM'][1])
+        elif tree['PROGRAM'][0] == 'CONDITIONAL':
+            instance = self.compiler_instance.new_instance(
+                namespace= "_embedded_if",
+                tree=(tree['PROGRAM'],),
+                sync="advanced"
+            )
+
+            instance.run()
+            value = '\n'.join([str(el) for el in instance.finished]) 
+
         else:
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
 
@@ -165,6 +175,8 @@ class HTMLMod(Module):
             elif type(obj) == str: # TODO: Legacy
                 value = obj
             else: value = obj.value
+            print(tree['PROGRAM'][0])
+            print("HTML", obj)
 
 
         # Check if it's a php call
@@ -709,6 +721,10 @@ class ResolutionMod(Module):
             ]:
             CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
             return CondMod(tree)
+        
+        elif tree[0] == "CONDITIONAL":
+            CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
+            return CondMod(tree[1])
 
         raise Exception(f"[RESOLUT] Failed to match {tree} is '{tree[0]}' supported?")
 

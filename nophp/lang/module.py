@@ -104,7 +104,7 @@ class Module:
         else: resolved = var
         value: BasicType = None
 
-        print(resolved)
+        # print(resolved)
 
         if type(resolved) == Auto:
             resolved = resolved.match()
@@ -148,7 +148,7 @@ class Module:
         else:
             print(f"Couldnt resolve {resolved} of {type(resolved)} in Module, returning None")
 
-        print(resolved, value)
+        print(value)
 
         return value
     

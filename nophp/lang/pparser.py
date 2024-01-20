@@ -257,6 +257,10 @@ class PyettyParser(Parser):
     def statement(self, p):
         return p.conditional
 
+    @_("conditional")
+    def expression(self, p):
+        return p.conditional
+
     @_("while_loop")
     def statement(self, p):
         return p.while_loop

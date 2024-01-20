@@ -2,6 +2,7 @@ from ..compiler import Compiler
 from ..exceptions import TranspilerExceptions
 from ..module import Module
 from ..types import *
+import json
 
 class EchoMod(Module):
     name="echo"
@@ -20,7 +21,12 @@ class EchoMod(Module):
             raise TranspilerExceptions.TooManyValues(values, "echo($msg)")
         
         value = values[0]
+
+        # Patch echo to correctly handle JSON
+
+        if type(value) in (list, dict, tuple):
+            value = json.dumps(value)
         
-        print(value)
+        # print(value)
 
         return str(value)

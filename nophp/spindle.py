@@ -69,16 +69,65 @@ parser = argparse.ArgumentParser(
     description='NoPHP Spindle server',
     epilog='Write Fast. Write More. Write NoPHP.')
 
-parser.add_argument('filename')  
+parser.add_argument('name', default='')  
 parser.add_argument('-o', '--host', default='localhost')
 parser.add_argument('-p', '--port', default=8000)
 parser.add_argument('-d', '--debug', action='store_true')
+parser.add_argument('-n', '--project', action='store_true')
 
 args = parser.parse_args()
 host = args.host
 port = int(args.port)
 debug = args.debug
-conf = args.filename
+conf = args.name
+
+def create_example_project(project_root):
+    # Create project root
+    os.makedirs(project_root, exist_ok=True)
+
+    # Create README file
+    with open(os.path.join(project_root, "README"), "w") as readme_file:
+        readme_file.write(f"Welcome to {project_root}!")
+
+    # Create 'app' directory
+    app_dir = os.path.join(project_root, "app")
+    os.makedirs(app_dir, exist_ok=True)
+
+    # Create 'viewcontrollers' directory inside 'app'
+    viewcontrollers_dir = os.path.join(app_dir, "viewcontrollers")
+    os.makedirs(viewcontrollers_dir, exist_ok=True)
+
+    # Create 'index.php' file inside 'viewcontrollers'
+    index_php_path = os.path.join(viewcontrollers_dir, "index.php")
+    with open(index_php_path, "w") as index_php_file:
+        index_php_file.write("<?php\n// Your NoPHP code goes here\n?>")
+
+    # Create 'static' directory
+    static_dir = os.path.join(project_root, "static")
+    os.makedirs(static_dir, exist_ok=True)
+
+    # Create 'config' directory
+    config_dir = os.path.join(project_root, "config")
+    os.makedirs(config_dir, exist_ok=True)
+
+    # Create 'wool.yaml' file inside 'config'
+    wool_yaml_path = os.path.join(config_dir, "wool.yaml")
+    with open(wool_yaml_path, "w") as wool_yaml_file:
+        wool_yaml_file.write(
+f"""---
+app: {project_root}
+secret_key: CHANGEME_SECRET
+routes:
+  /: app/viewcontrollers/index.php
+static:
+  /files/<path:path>: static/"""
+        )
+
+    print(f"Project {project_root} was created!")
+
+if args.project:
+    create_example_project(conf)
+    exit(0)
 
 config = yaml.load(open(conf,"r"), Loader)
 
