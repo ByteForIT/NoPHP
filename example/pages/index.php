@@ -14,7 +14,7 @@ class BlaBla {
 
 $bla = new BlaBla();
 echo $bla->ptest();
-echo $bla->a;
+// echo $bla->a;
 
 // Styling will be in the styles.php file
 require_once("config/styles.php");

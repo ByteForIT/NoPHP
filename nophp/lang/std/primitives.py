@@ -62,6 +62,19 @@ class EmptyMod(CommonMod):
         return Bool(emptiness)
 
 # For arrays
+# array()
+class ArrayMod(CommonMod):
+    name="array"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        Warn("It is discouraged to use array(), instead construct an empty array via []")
+        return DynArray([])
+
 
 # array_push($array, $value)
 class ArrayPushMod(CommonMod):
@@ -81,6 +94,7 @@ class ArrayPushMod(CommonMod):
     
 _MODS = {
     "count": CountMod,
+    "ArrayMod": ArrayMod,
     "array_push": ArrayPushMod,
     "empty": EmptyMod
 }

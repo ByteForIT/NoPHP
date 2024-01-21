@@ -257,6 +257,7 @@ class Compiler:
         name: str, 
         type,
         obj,
+        level = 'public',
         force = False
     ) -> None:
         # print(f"At {self.line} {self.namespace}")
@@ -265,7 +266,8 @@ class Compiler:
             raise TranspilerExceptions.VarExists(name)
         self.variables[name] = {
                 "type": type,
-                "object": obj
+                "object": obj,
+                "level": level,
             }
         
     def remove_variable(
