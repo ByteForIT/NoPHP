@@ -341,7 +341,9 @@ if 'json' in config:
             config['json'][route]
         )
 
-print(app.app.url_map)
+if 'onstart' in config:
+    _c = Compiler([])
+    app.build_sp(config['onstart'], _c)
 
 if __name__ == "__main__":
     print("Starting on {host}:{port}".format(host=host, port=port))
