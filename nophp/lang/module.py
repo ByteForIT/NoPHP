@@ -23,9 +23,6 @@ class Module:
         self.type = "Unknown"
         self.built = ""
         self.template = ""
-        self.o1 = False
-        self.o2 = False
-        self.o3 = False
         self.no_construct = False        
 
     def __call__(
@@ -39,9 +36,6 @@ class Module:
         self.override()
         return _values
     
-    # Future
-    #def optimise(self): pass
-    optimise = None
 
     def remove_quotes(_,s):
         if type(s) != str: return str(s)
@@ -49,9 +43,6 @@ class Module:
             return s.strip('"')
     
         return s
-
-    # Future: Return true for now
-    def verify(self): return True
 
     def override(self):
         """
@@ -61,21 +52,6 @@ class Module:
 
     # Implemented in module child
     def proc_tree(self, tree) -> dict: "Return a dict containing values processed from the tree"
-
-    # Format
-    # TODO: Remove this as it's not used
-    def _constructor(
-        self,
-        arguments: dict
-    ) -> BUILT_TYPE:
-        if arguments == None:
-            raise ModuleExceptions.InvalidModuleConstruction(self)
-        try:
-            return self.template.format(
-                    **arguments
-                )
-        except Exception:
-            raise Exception(f"In '{self.name}' - Failed to unpack elements. Perhaps you need to set `no_construct` to True to avoid this module's construction?")
 
     def base(self, tree, ref=False):
         values = []
