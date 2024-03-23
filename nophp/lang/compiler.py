@@ -46,10 +46,10 @@ class Compiler:
         self.prev = None
 
         self.persistent = False
-        self.log = Console()
+        self._console = Console()
 
     def log(self, *args):
-        self.log.print(*args)
+        self._console.print(*args)
 
     def new_instance(
         self,

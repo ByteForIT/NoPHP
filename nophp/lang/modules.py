@@ -1036,6 +1036,7 @@ class FunctionCallMod(Module):
 
         console.log(f"[FunctionCallMod] {funcname}(...) from {cls}")
 
+        # sInnerMut is cursed, find an alternative?
         if type(funcobj) == sInnerMut:
             return self.run_sInnerMut(funcobj, arguments)
         elif cls is not None:
@@ -1172,7 +1173,7 @@ class ReturnMod(Module):
         v = resolution_module(tree["EXPRESSION"])
 
         self.compiler_instance.returns = v
-        self.compiler_instance.stop = True
+        self.compiler_instance.stop = True # This hard kills the compiler instance
         
 
 
