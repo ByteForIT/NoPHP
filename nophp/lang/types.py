@@ -177,7 +177,8 @@ class Auto(BasicType):
         Basic matching.
 
         We expect that the object contains all or most
-        of the known types
+        of the known types. It will optimally match
+        a type.
         ```
         [Request]      -->      [Auto(Request)]
         |- str(method)            |- String(method)
@@ -306,4 +307,12 @@ NOPHP_TYPES = (
     Request,
     SqlConnector,
     Salt
+)
+
+BASE_TYPES = (
+    str,
+    list,
+    int,
+    tuple,
+    float
 )

@@ -66,14 +66,15 @@ from yaml import Loader
 
 parser = argparse.ArgumentParser(
     prog='NoPHP server',
-    description='NoPHP Spindle server',
+    description=
+'''NoPHP Spindle server''',
     epilog='Write Fast. Write More. Write NoPHP.')
 
 parser.add_argument('name', default='')  
-parser.add_argument('-o', '--host', default='localhost')
-parser.add_argument('-p', '--port', default=8000)
-parser.add_argument('-d', '--debug', action='store_true')
-parser.add_argument('-n', '--project', action='store_true')
+parser.add_argument('-o', '--host', default='localhost', help="Hostname to be used")
+parser.add_argument('-p', '--port', default=8000, help="Port to listen on")
+parser.add_argument('-d', '--debug', action='store_true', help="Debug mode, doesnt do much")
+parser.add_argument('-n', '--project', action='store_true', help="Create a project. Requires a name")
 
 args = parser.parse_args()
 host = args.host
@@ -195,6 +196,9 @@ class SpindleApp:
             "htmlspecialchars": {
                 "run_func": htmlspecialchars.HTMLSpecialCharMod(_c)
             },
+            "invert_htmlspecialchars": {
+                "run_func": htmlspecialchars.InvertHTMLSpecialCharMod(_c)
+            },
             "strlen": {
                 "run_func": string.StrLenMod(_c)
             },
@@ -260,7 +264,7 @@ class SpindleApp:
         def _func(*args, **kwargs):
             _c = Compiler([])
             out = self.build_sp(file, _c)
-            return out
+            return "<!DOCTYPE html>" + out
         
         name = f"_func_" + str(random.randint(0,BIGGEST_PAGES))
         while name in self.functions:
@@ -300,7 +304,10 @@ class SpindleApp:
         def _func(*args, **kwargs):
             _c = Compiler([])
             out = self.build_sp(file, _c)
-            return jsonify(_json.loads(out))
+            try:
+                return jsonify(_json.loads(out))
+            except Exception:
+                print(f"Failed to jsonify {out}")
         
         name = f"_jfunc_" + str(random.randint(0,BIGGEST_PAGES))
         while name in self.functions:
@@ -310,10 +317,11 @@ class SpindleApp:
 
         setattr(self, name, _func)
         print("Adding", _func.__name__, route, file)
-        self.app.route(route)(getattr(self, name))
+        self.app.route(route, methods=['GET', 'POST'])(getattr(self, name))
         
     def run(self):
-        global host, port
+        global host, port, debug
+        print("Starting on {host}:{port}".format(host=host, port=port))
         self.app.run(host=host, port=port, debug=debug)
         
 app = SpindleApp()
@@ -345,6 +353,8 @@ if 'onstart' in config:
     _c = Compiler([])
     app.build_sp(config['onstart'], _c)
 
+def main():
+    app.run()
+
 if __name__ == "__main__":
-    print("Starting on {host}:{port}".format(host=host, port=port))
-    app.run(host=host, port=port, debug=debug)
+    main()

@@ -118,6 +118,8 @@ class Module:
             value = self.remove_quotes(resolved.value)
         elif type(resolved) == Int32:
             value = resolved.value
+        elif type(resolved) == Bool:
+            value = resolved.value
         elif type(resolved) == sInnerMut:
             value = func_module.run_sInnerMut(resolved).value
         elif type(resolved) == type(self.compiler_instance):

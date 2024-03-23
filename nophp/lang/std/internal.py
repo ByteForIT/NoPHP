@@ -44,8 +44,22 @@ class VersionInfo(CommonInternalMod):
         v = version("nophp")
         return String(v)
     
+# die
+class NoPHPDie(CommonInternalMod):
+    name="die"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        # Mirror functionality of INTERNAL_CALL(die)
+        self.compiler_instance.stop = True
+    
 _MODS = {
     "nophp_version": VersionInfo,
+    "die": NoPHPDie
 }
 
 def build_funcs(c):

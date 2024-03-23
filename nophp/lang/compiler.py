@@ -228,6 +228,11 @@ class Compiler:
                             line_numbers=True
                         )
                     )
+                    print("Stacktrace:")
+                    parent = self.parent
+                    while parent is not None:
+                        print(parent)
+                        parent = parent.parent
                     if self.persistent:
                         raise e
                     else:

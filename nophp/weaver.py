@@ -1,27 +1,24 @@
 # Pretty-print
-import os
-import re
-import webbrowser
 from rich import print
 from rich.console import Console
 
-from lang.compiler import Compiler
-from lang.std.htmlspecialchars import HTMLSpecialCharMod
-from lang.std.rand import RandMod
-from lang.std.string import *
-from splitter import split_php
+from .lang.compiler import Compiler
+from .lang.std.htmlspecialchars import HTMLSpecialCharMod
+from .lang.std.rand import RandMod
+from .lang.std.string import *
+from .splitter import split_php
 console = Console()
 from rich.syntax import Syntax
 from rich.progress import Progress
 
 # Parser and lexer
-from lang.lexer import PyettyLexer
-from lang.pparser import PyettyParser
+from .lang.lexer import PyettyLexer
+from .lang.pparser import PyettyParser
 # from rich.traceback import install
 # install()
 
 # Load modules
-from lang.modules import (
+from .lang.modules import (
     ConditionalMod,
     ForEachMod,
     GetIndexMod,
@@ -34,7 +31,7 @@ from lang.modules import (
     PhpMod,
     HTMLMod,
     ConcatMod,
-    PublicModMod,
+    PublicMod,
     RequireOnceMod,
     ReturnMod,
     TarrowMod,
@@ -47,7 +44,7 @@ from lang.modules import (
     WhileMod
 )
 # Language builtins
-from lang.std.echo import EchoMod
+from .lang.std.echo import EchoMod
 
 ### Args proc ###
 from sys import argv
@@ -194,7 +191,7 @@ compiler.builtin_functions = {
         "run_func": UseMod(compiler)
     },
     "public": {
-        "run_func": PublicModMod(compiler)
+        "run_func": PublicMod(compiler)
     },
     "rand": {
         "run_func": RandMod(compiler)
@@ -209,22 +206,26 @@ compiler.builtin_functions = {
         "run_func": StrReplaceMod(compiler)
     },
 }
-compiler.run()
 
-pyetty_out_pretty = Syntax(
-                    '\n'.join([str(el) for el in compiler.finished]) + "\n" + html,
-                    "v",
-                    padding=1, 
-                    line_numbers=True
-                )
-# print(pyetty_out_pretty)
+def main():
+    compiler.run()
 
-print("[green]Complete serving...[/green]")
+    pyetty_out_pretty = Syntax(
+                        '\n'.join([str(el) for el in compiler.finished]) + "\n" + html,
+                        "v",
+                        padding=1, 
+                        line_numbers=True
+                    )
+    # print(pyetty_out_pretty)
 
-with open('out.html', "w+") as f:
-    f.write(''.join([str(el) for el in compiler.finished]))
-    f.write(html)
+    print("[green]Complete serving...[/green]")
 
+    with open('out.html', "w+") as f:
+        f.write(''.join([str(el) for el in compiler.finished]))
+        f.write(html)
+
+if __name__ == '__main__':
+    main()
 
 # webbrowser.open('file://' + os.path.realpath("out.html"))
 

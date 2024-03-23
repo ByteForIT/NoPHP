@@ -151,6 +151,15 @@ class HTMLMod(Module):
             value = ""
         elif tree['PROGRAM'][0] == 'HTML':
             value = self.__class__(self.compiler_instance)(tree['PROGRAM'][1])
+        elif tree['PROGRAM'][0] == 'CONDITIONAL':
+            instance = self.compiler_instance.new_instance(
+                namespace= "_embedded_if",
+                tree=(tree['PROGRAM'],),
+                sync="advanced"
+            )
+
+            instance.run()
+            value = '\n'.join([str(el) for el in instance.finished]) 
         else:
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
 
@@ -559,8 +568,8 @@ class SetIndexMod(Module):
                 else:
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
             elif var['type'] == Session:
-                # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]))
-                var['object'].value[index_value] = value.value
+                print("Session contains:",var['object'].value.get(index_value), type(var['object'].value.get(index_value)))
+                var['object'].value[index_value] = Auto(value, "basic").value
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray], line)
         elif type(name) == DynArray:
@@ -709,7 +718,11 @@ class ResolutionMod(Module):
             ]:
             CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
             return CondMod(tree)
-
+        
+        elif tree[0] == "CONDITIONAL":
+            CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
+            return CondMod(tree[1])
+        
         raise Exception(f"[RESOLUT] Failed to match {tree} is '{tree[0]}' supported?")
 
 
@@ -932,7 +945,7 @@ class FunctionCallMod(Module):
         super().__init__()
         self.compiler_instance = compiler_instance
 
-    def run_sInnerMut(self, funcobj, arguments):
+    def run_sInnerMut(self, funcobj, arguments={}):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         if 'POSITIONAL_ARGS' in arguments:
@@ -1179,6 +1192,8 @@ class TarrowMod(Module):
             return self.compiler_instance.get_variable(tree["TO"])['object']
         elif tree["FROM"] in self.compiler_instance.variables:
             o = self.compiler_instance.get_variable(tree["FROM"])['object']
+            if type(o) == Nil:
+                raise TranspilerExceptions.Generic(f"Unable to find callable unit on a value of Nil. '{tree['FROM']}' was Nil\n::Information::\n'{self.compiler_instance.get_variable(tree['FROM'])}'")
             # print(tree["TO"], o.get_variable(tree["TO"]), self.compiler_instance.namespace)
             return Auto(o.get_variable(tree["TO"])['object'], 'basic').value
         else:

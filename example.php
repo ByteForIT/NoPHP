@@ -1,8 +1,8 @@
 <?php
 namespace Example;
 
-function greet($el)
+function greet()
 {
-    return $el;
+    return "Hi from NoPHP";
 }
 ?>

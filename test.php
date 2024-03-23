@@ -158,8 +158,7 @@ use Example;
 echo "<br>" . Example\greet(2000);
 echo "<br>" . Example\greet(1000);
 
-?>
+// Try to fix function scope issues
 
-<p>
-Hello World!!
-</p>
+
+?>
