@@ -74,17 +74,17 @@ class SessionStartMod(_SessionMod):
 
         # Session already exists
         if "_noid" in session:
-            print("Session exists")
+            self.compiler_instance.log("Session exists")
         else:
             global SESSION_TRACKER
             try:
                 session['_noid'] = generate_session()
             except RuntimeError as e:
-                print("No secret key was set. Unable to securely create a session. Please add a 'secret_key' entry to the wool.yaml config.")
+                self.compiler_instance.log("No secret key was set. Unable to securely create a session. Please add a 'secret_key' entry to the wool.yaml config.")
             SESSION_TRACKER[session['_noid']] = {
                 "_cin": self.compiler_instance.namespace # Created in
             }
-            print(f"Session created for {session['_noid']}")
+            self.compiler_instance.log(f"Session created for {session['_noid']}")
 
         # Add new variable 
         self.compiler_instance.create_variable(
@@ -115,7 +115,7 @@ class SessionDestroyMod(_SessionMod):
 
         # Session already exists
         if "_noid" in session:
-            print("Session exists, destroying")
+            self.compiler_instance.log("Session exists, destroying")
             global SESSION_TRACKER
             if session['_noid'] in SESSION_TRACKER:
                 del SESSION_TRACKER[session['_noid']]
