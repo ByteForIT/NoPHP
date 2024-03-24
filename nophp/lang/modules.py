@@ -54,8 +54,8 @@ class ConcatMod(Module):
 
 
         # Todo: Legacy, remove as it's not used and may cause issues
-        if type(first_resolved) == str: first_resolved = String(first_resolved)
-        if type(second_resolved) == str: second_resolved = String(second_resolved)
+        if type(first_resolved) in BASE_TYPES: first_resolved = Auto(first_resolved, "basic").value
+        if type(second_resolved) in BASE_TYPES: second_resolved = Auto(second_resolved, "basic").value
 
         if type(first_resolved) not in supported_types or\
               type(second_resolved) not in supported_types:
@@ -142,7 +142,7 @@ class HTMLMod(Module):
         self.parser = MyHTMLParser(self)
 
     def proc_tree(self, tree):
-        # pprint("[HTML] triggered simplified HTML build.")
+        # pprint("[HTML] triggered simplified HTML build.") No longer simple heh
 
         self.tag = ""
         self.attrs = {}
@@ -184,8 +184,8 @@ class HTMLMod(Module):
         self.tag = ""
         self.attrs = {}
         self.parser.feed(start)
-        # print(self.tag)
-        # print(self.attrs)
+        print(self.tag)
+        print(self.attrs)
         
         if self.attrs != {}:
             final = []
@@ -194,6 +194,7 @@ class HTMLMod(Module):
                 if self.attrs[attr] is None:
                     raise TranspilerExceptions.Generic(f"Invalid HTML at tag {self.tag}")
                 if self.attrs[attr].startswith('$'):
+                    self.compiler_instance.log(attr)
                     code = f"echo {self.attrs[attr]}"
                     lexer = PyettyLexer()
                     parser = PyettyParser()
@@ -210,7 +211,7 @@ class HTMLMod(Module):
                     final.append(f"{attr}=\"{self.attrs[attr]}\"")
             start = f"<{self.tag} {' '.join(final)}>"
 
-        # Todo: Legacy
+        # TODO: Legacy
         if type(value) == String:
             value = self.remove_quotes(value.value)
 
@@ -1353,6 +1354,8 @@ class MathMod(Module):
         def atomize(val):
             if type(val) == ID:
                 val = self.compiler_instance.get_variable(val.value)['object']
+            
+            val = Auto(val, "basic").value
             return val
         
         first = atomize(first)
@@ -1431,8 +1434,8 @@ class ConditionalMod(Module):
                     val = val.value
                 elif type(val) == Auto:
                     val = atomize(val.value)
-                else:
-                    print(type(val))
+                # else:
+                    # print(type(val))
                 return val
 
             first = atomize(first)
@@ -1467,7 +1470,7 @@ class BoolMod(Module):
         conditional_module: Module = self.compiler_instance.get_action('CONDITIONAL')
         empty: Module = self.compiler_instance.get_action('empty') # Actually a function
 
-        pprint(tree)
+        # pprint(tree)
         op = tree[0]
         first = tree[1]
         second = tree[2]
