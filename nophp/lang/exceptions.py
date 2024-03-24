@@ -35,6 +35,9 @@ class TranspilerExceptions:
     class OutOfBounds(Exception):
         def __init__(self, index, length):
             Exception.__init__(self, f"Index {index} is out of bounds. Array length is {length}")
+    class UnauthorizedCall(Exception):
+        def __init__(self, func, level, nm, clas):
+            Exception.__init__(self, f"The function '{func}' is {level}, but being called from '{nm}', it's parent is '{clas}'")
     class UnauthorizedBitSet(Exception):
         def __init__(self):
             Exception.__init__(self, f"This program is not being built in the correct mode for setting the bit configuration.")

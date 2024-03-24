@@ -1,6 +1,21 @@
 <?php
 namespace App;
 
+class BlaBla {
+    private $a;
+    private function test() {
+        $this->a = "a";
+    }
+    public function ptest() {
+        $this->test();
+        return $this->a;
+    }
+}
+
+$bla = new BlaBla();
+echo $bla->ptest();
+// echo $bla->a;
+
 // Styling will be in the styles.php file
 require_once("config/styles.php");
 

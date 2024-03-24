@@ -46,6 +46,10 @@ class Compiler:
         self.prev = None
 
         self.persistent = False
+        self._console = Console()
+
+    def log(self, *args):
+        self._console.print(*args)
 
     def new_instance(
         self,
@@ -162,6 +166,9 @@ class Compiler:
             else:
                 self.actions[module.name] = modobj
 
+            if module.type == Module.MODULE_TYPES.SPECIAL_ACTION_FUNC:
+                self.functions[module.name] = modobj
+
             self._modules[module.name] = modobj
 
     def add_builtin_functions(self, funcs):
@@ -225,6 +232,11 @@ class Compiler:
                             line_numbers=True
                         )
                     )
+                    print("Stacktrace:")
+                    parent = self.parent
+                    while parent is not None:
+                        print(parent)
+                        parent = parent.parent
                     if self.persistent:
                         raise e
                     else:
@@ -254,6 +266,7 @@ class Compiler:
         name: str, 
         type,
         obj,
+        level = 'public',
         force = False
     ) -> None:
         # print(f"At {self.line} {self.namespace}")
@@ -262,7 +275,8 @@ class Compiler:
             raise TranspilerExceptions.VarExists(name)
         self.variables[name] = {
                 "type": type,
-                "object": obj
+                "object": obj,
+                "level": level,
             }
         
     def remove_variable(

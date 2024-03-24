@@ -23,9 +23,6 @@ class Module:
         self.type = "Unknown"
         self.built = ""
         self.template = ""
-        self.o1 = False
-        self.o2 = False
-        self.o3 = False
         self.no_construct = False        
 
     def __call__(
@@ -39,9 +36,6 @@ class Module:
         self.override()
         return _values
     
-    # Future
-    #def optimise(self): pass
-    optimise = None
 
     def remove_quotes(_,s):
         if type(s) != str: return str(s)
@@ -49,9 +43,6 @@ class Module:
             return s.strip('"')
     
         return s
-
-    # Future: Return true for now
-    def verify(self): return True
 
     def override(self):
         """
@@ -62,20 +53,23 @@ class Module:
     # Implemented in module child
     def proc_tree(self, tree) -> dict: "Return a dict containing values processed from the tree"
 
-    # Format
-    # TODO: Remove this as it's not used
-    def _constructor(
-        self,
-        arguments: dict
-    ) -> BUILT_TYPE:
-        if arguments == None:
-            raise ModuleExceptions.InvalidModuleConstruction(self)
-        try:
-            return self.template.format(
-                    **arguments
-                )
-        except Exception:
-            raise Exception(f"In '{self.name}' - Failed to unpack elements. Perhaps you need to set `no_construct` to True to avoid this module's construction?")
+    def base(self, tree, ref=False):
+        values = []
+
+        if 'FUNCTION_ARGUMENTS' not in tree:
+            # Advanced handling
+            for var in tree:
+                value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+                values.append(value)
+        else:
+            if 'POSITIONAL_ARGS' in tree['FUNCTION_ARGUMENTS']:
+                for var in tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']:
+
+                    value = self.ref_resolve(var) if ref else self.safely_resolve(var)
+
+                    values.append(value)
+
+        return values
 
     def safely_resolve(self, var):
         # Dependencies
@@ -86,7 +80,7 @@ class Module:
         else: resolved = var
         value: BasicType = None
 
-        print(resolved)
+        # print(resolved)
 
         if type(resolved) == Auto:
             resolved = resolved.match()
@@ -99,6 +93,8 @@ class Module:
         elif type(resolved) == String:
             value = self.remove_quotes(resolved.value)
         elif type(resolved) == Int32:
+            value = resolved.value
+        elif type(resolved) == Bool:
             value = resolved.value
         elif type(resolved) == sInnerMut:
             value = func_module.run_sInnerMut(resolved).value
@@ -130,7 +126,7 @@ class Module:
         else:
             print(f"Couldnt resolve {resolved} of {type(resolved)} in Module, returning None")
 
-        print(resolved, value)
+        print(value)
 
         return value
     

@@ -25,7 +25,7 @@ function RunTests($id) : void {
     echo '<code>';
 
     function ExampleFunction() : int {
-        echo "I return: ";
+        echo "I return (expect 1): ";
         return 1;
     }
 
@@ -158,8 +158,21 @@ use Example;
 echo "<br>" . Example\greet(2000);
 echo "<br>" . Example\greet(1000);
 
-?>
+// Try to fix function scope issues
 
-<p>
-Hello World!!
-</p>
+class HelloWorld {
+    public function run() : string {
+        return <h1>"Hello, World!"</h1>;
+    }
+
+    public function displayOutput() {
+        echo $this->run();
+    }
+}
+
+// Create an instance of the class
+$helloWorld = new HelloWorld();
+
+// Display the output
+$helloWorld->displayOutput();
+?>

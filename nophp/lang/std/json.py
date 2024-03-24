@@ -62,6 +62,8 @@ class JSONEncodeMod(CommonJSONMod):
             return Map(attrs)
         elif type(obj) == list:
             return dumps(obj)
+        elif type(obj) == dict:
+            return dumps(obj)
         else:
             raise TranspilerExceptions.Generic(f"Couldn't convert {obj} to JSON")
 

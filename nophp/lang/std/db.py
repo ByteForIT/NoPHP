@@ -53,6 +53,8 @@ class DbCommonMod(Module):
                 value = self.safely_resolve(v["object"].value)
             elif v["type"] == ID:
                 value = self.safely_resolve(v["object"], instance=instance.parent)
+            elif type(v['object']) in BASE_TYPES:
+                value = v['object']
             else:
                 value = v['object'].value
         elif type(value) == String:

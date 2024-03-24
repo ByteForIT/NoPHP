@@ -175,19 +175,21 @@ class Auto(BasicType):
     For example: 
 
         Basic matching.
-        We expect a manually defined AutoEncoder and
-        AutoDecoder for this object
 
-        Opportunistic matching.
         We expect that the object contains all or most
-        of the known types
+        of the known types. It will optimally match
+        a type.
         ```
         [Request]      -->      [Auto(Request)]
         |- str(method)            |- String(method)
         |- bytes(data)            |- DynArray(data, type=Char)
         |- ...                    |- ...
         ```
+        
+        Special matching.
 
+        We expect a manually defined AutoEncoder and
+        AutoDecoder for this object
     '''
     size = 0
     abbr_name = 'Auto'
@@ -203,7 +205,7 @@ class Auto(BasicType):
 
     def match_value(self, value, _type='none'):
         if type(value) == Auto:
-            value = value.value 
+            value = value.value
         if _type == 'basic':
             _f = {
                 None: Nil,
@@ -286,3 +288,31 @@ class Salt(BasicType):
     def __init__(self, salt):
         self.value = salt
         super().__init__()
+
+NOPHP_TYPES = (
+    String,
+    Int32,
+    ID,
+    Char,
+    Bool,
+    Float,
+    List,
+    Map,
+    DynArray,
+    Auto,
+    Any,
+    Nil,
+    sInnerMut,
+    Session,
+    Request,
+    SqlConnector,
+    Salt
+)
+
+BASE_TYPES = (
+    str,
+    list,
+    int,
+    tuple,
+    float
+)

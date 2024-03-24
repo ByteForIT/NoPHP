@@ -68,7 +68,7 @@ echo
                         .<p> "✓ Your lucky number is " . rand(1, 100) </p>
                         .<p> "✓ Example greeting: " . $greeting </p>
                         .<p> "✓ Greeting length: " . strlen($greeting) </p>
-                        .<p> "✘ Greeting replaced (Hi -> Hello, failure when passing a function call, but passing a func name works): " .  str_replace("Hi", "Hello", Example/greet) </p>
+                        .<p> "✘ Greeting replaced (Hi -> Hello, failure when passing a function call, but passing a func name works): " .  str_replace("Hi", "Hello", $greeting) </p>
                         .<p> "✓ Substring (Hi from Example! -> from Example!): " .  substr($greeting, 2) </p>
                         .<p> "✓ Also visit the " . <a href="/test"> "testing page" </a> </p>
                         .<i style="color: green"> "✓ - Passing" </i> 

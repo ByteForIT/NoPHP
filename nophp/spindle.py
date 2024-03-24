@@ -54,6 +54,7 @@ from .lang.std import (
     db,
     bcrypt,
     json,
+    internal,
 )
 
 # Read wool config
@@ -65,19 +66,69 @@ from yaml import Loader
 
 parser = argparse.ArgumentParser(
     prog='NoPHP server',
-    description='NoPHP Spindle server',
+    description=
+'''NoPHP Spindle server''',
     epilog='Write Fast. Write More. Write NoPHP.')
 
-parser.add_argument('filename')  
-parser.add_argument('-o', '--host', default='localhost')
-parser.add_argument('-p', '--port', default=8000)
-parser.add_argument('-d', '--debug', action='store_true')
+parser.add_argument('name', default='')  
+parser.add_argument('-o', '--host', default='localhost', help="Hostname to be used")
+parser.add_argument('-p', '--port', default=8000, help="Port to listen on")
+parser.add_argument('-d', '--debug', action='store_true', help="Debug mode, doesnt do much")
+parser.add_argument('-n', '--project', action='store_true', help="Create a project. Requires a name")
 
 args = parser.parse_args()
 host = args.host
 port = int(args.port)
 debug = args.debug
-conf = args.filename
+conf = args.name
+
+def create_example_project(project_root):
+    # Create project root
+    os.makedirs(project_root, exist_ok=True)
+
+    # Create README file
+    with open(os.path.join(project_root, "README"), "w") as readme_file:
+        readme_file.write(f"Welcome to {project_root}!")
+
+    # Create 'app' directory
+    app_dir = os.path.join(project_root, "app")
+    os.makedirs(app_dir, exist_ok=True)
+
+    # Create 'viewcontrollers' directory inside 'app'
+    viewcontrollers_dir = os.path.join(app_dir, "viewcontrollers")
+    os.makedirs(viewcontrollers_dir, exist_ok=True)
+
+    # Create 'index.php' file inside 'viewcontrollers'
+    index_php_path = os.path.join(viewcontrollers_dir, "index.php")
+    with open(index_php_path, "w") as index_php_file:
+        index_php_file.write("<?php\n// Your NoPHP code goes here\n?>")
+
+    # Create 'static' directory
+    static_dir = os.path.join(project_root, "static")
+    os.makedirs(static_dir, exist_ok=True)
+
+    # Create 'config' directory
+    config_dir = os.path.join(project_root, "config")
+    os.makedirs(config_dir, exist_ok=True)
+
+    # Create 'wool.yaml' file inside 'config'
+    wool_yaml_path = os.path.join(config_dir, "wool.yaml")
+    with open(wool_yaml_path, "w") as wool_yaml_file:
+        wool_yaml_file.write(
+f"""---
+app: {project_root}
+secret_key: CHANGEME_SECRET
+routes:
+  /: app/viewcontrollers/index.php
+static:
+  /files/<path:path>: static/"""
+        )
+
+    print(f"Project {project_root} was created!")
+
+if args.project:
+    create_example_project(conf)
+    exit(0)
 
 config = yaml.load(open(conf,"r"), Loader)
 
@@ -145,6 +196,9 @@ class SpindleApp:
             "htmlspecialchars": {
                 "run_func": htmlspecialchars.HTMLSpecialCharMod(_c)
             },
+            "invert_htmlspecialchars": {
+                "run_func": htmlspecialchars.InvertHTMLSpecialCharMod(_c)
+            },
             "strlen": {
                 "run_func": string.StrLenMod(_c)
             },
@@ -171,6 +225,7 @@ class SpindleApp:
             **primitives.build_funcs(_c),
             **bcrypt.build_funcs(_c),
             **json.build_funcs(_c),
+            **internal.build_funcs(_c),
             
             "require_once": {
                 "run_func": RequireOnceMod(_c)
@@ -209,7 +264,7 @@ class SpindleApp:
         def _func(*args, **kwargs):
             _c = Compiler([])
             out = self.build_sp(file, _c)
-            return out
+            return "<!DOCTYPE html>" + out
         
         name = f"_func_" + str(random.randint(0,BIGGEST_PAGES))
         while name in self.functions:
@@ -249,7 +304,10 @@ class SpindleApp:
         def _func(*args, **kwargs):
             _c = Compiler([])
             out = self.build_sp(file, _c)
-            return jsonify(_json.loads(out))
+            try:
+                return jsonify(_json.loads(out))
+            except Exception:
+                print(f"Failed to jsonify {out}")
         
         name = f"_jfunc_" + str(random.randint(0,BIGGEST_PAGES))
         while name in self.functions:
@@ -259,10 +317,11 @@ class SpindleApp:
 
         setattr(self, name, _func)
         print("Adding", _func.__name__, route, file)
-        self.app.route(route)(getattr(self, name))
+        self.app.route(route, methods=['GET', 'POST'])(getattr(self, name))
         
     def run(self):
-        global host, port
+        global host, port, debug
+        print("Starting on {host}:{port}".format(host=host, port=port))
         self.app.run(host=host, port=port, debug=debug)
         
 app = SpindleApp()
@@ -290,8 +349,12 @@ if 'json' in config:
             config['json'][route]
         )
 
-print(app.app.url_map)
+if 'onstart' in config:
+    _c = Compiler([])
+    app.build_sp(config['onstart'], _c)
+
+def main():
+    app.run()
 
 if __name__ == "__main__":
-    print("Starting on {host}:{port}".format(host=host, port=port))
-    app.run(host=host, port=port, debug=debug)
+    main()

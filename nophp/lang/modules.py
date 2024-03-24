@@ -54,8 +54,8 @@ class ConcatMod(Module):
 
 
         # Todo: Legacy, remove as it's not used and may cause issues
-        if type(first_resolved) == str: first_resolved = String(first_resolved)
-        if type(second_resolved) == str: second_resolved = String(second_resolved)
+        if type(first_resolved) in BASE_TYPES: first_resolved = Auto(first_resolved, "basic").value
+        if type(second_resolved) in BASE_TYPES: second_resolved = Auto(second_resolved, "basic").value
 
         if type(first_resolved) not in supported_types or\
               type(second_resolved) not in supported_types:
@@ -142,7 +142,7 @@ class HTMLMod(Module):
         self.parser = MyHTMLParser(self)
 
     def proc_tree(self, tree):
-        # pprint("[HTML] triggered simplified HTML build.")
+        # pprint("[HTML] triggered simplified HTML build.") No longer simple heh
 
         self.tag = ""
         self.attrs = {}
@@ -151,6 +151,15 @@ class HTMLMod(Module):
             value = ""
         elif tree['PROGRAM'][0] == 'HTML':
             value = self.__class__(self.compiler_instance)(tree['PROGRAM'][1])
+        elif tree['PROGRAM'][0] == 'CONDITIONAL':
+            instance = self.compiler_instance.new_instance(
+                namespace= "_embedded_if",
+                tree=(tree['PROGRAM'],),
+                sync="advanced"
+            )
+
+            instance.run()
+            value = '\n'.join([str(el) for el in instance.finished]) 
         else:
             obj = self.compiler_instance.get_action("RESOLUT")(tree['PROGRAM'])
 
@@ -175,8 +184,8 @@ class HTMLMod(Module):
         self.tag = ""
         self.attrs = {}
         self.parser.feed(start)
-        # print(self.tag)
-        # print(self.attrs)
+        print(self.tag)
+        print(self.attrs)
         
         if self.attrs != {}:
             final = []
@@ -185,6 +194,7 @@ class HTMLMod(Module):
                 if self.attrs[attr] is None:
                     raise TranspilerExceptions.Generic(f"Invalid HTML at tag {self.tag}")
                 if self.attrs[attr].startswith('$'):
+                    self.compiler_instance.log(attr)
                     code = f"echo {self.attrs[attr]}"
                     lexer = PyettyLexer()
                     parser = PyettyParser()
@@ -201,7 +211,7 @@ class HTMLMod(Module):
                     final.append(f"{attr}=\"{self.attrs[attr]}\"")
             start = f"<{self.tag} {' '.join(final)}>"
 
-        # Todo: Legacy
+        # TODO: Legacy
         if type(value) == String:
             value = self.remove_quotes(value.value)
 
@@ -368,6 +378,9 @@ class IncludeMod(Module):
 
         console.log("[red]<===>[/red] Include")
 
+
+        Warn("Include is broken, please make sure to use the latest RC versions for fastest patches")
+
         if len(tree['FUNCTION_ARGUMENTS']['POSITIONAL_ARGS']) > 1:
             raise TranspilerExceptions.TooManyValues(values, "include($_path)")
         
@@ -460,7 +473,7 @@ class GetIndexMod(Module):
                 else:
                     print(var['object'])
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
-            # TODO: Session and Request types need to be compatible with printing out in echo
+            # DONE: Session and Request types need to be compatible with printing out in echo
             elif var['type'] == Session:
                 if index_value in var['object'].value:
                     # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]), var['object'].value)
@@ -556,8 +569,8 @@ class SetIndexMod(Module):
                 else:
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
             elif var['type'] == Session:
-                # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]))
-                var['object'].value[index_value] = value.value
+                print("Session contains:",var['object'].value.get(index_value), type(var['object'].value.get(index_value)))
+                var['object'].value[index_value] = Auto(value, "basic").value
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray], line)
         elif type(name) == DynArray:
@@ -594,7 +607,7 @@ class ResolutionMod(Module):
                 variable_name = match.group(1)
                 value = self.compiler_instance.get_variable(variable_name)['object']
                 
-                return self.safely_resolve(value.value)
+                return str(self.safely_resolve(value.value))
 
             result = pattern.sub(replace, text)
             return String(result)
@@ -706,7 +719,11 @@ class ResolutionMod(Module):
             ]:
             CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
             return CondMod(tree)
-
+        
+        elif tree[0] == "CONDITIONAL":
+            CondMod: Module = self.compiler_instance.get_action("CONDITIONAL")
+            return CondMod(tree[1])
+        
         raise Exception(f"[RESOLUT] Failed to match {tree} is '{tree[0]}' supported?")
 
 
@@ -929,7 +946,7 @@ class FunctionCallMod(Module):
         super().__init__()
         self.compiler_instance = compiler_instance
 
-    def run_sInnerMut(self, funcobj, arguments):
+    def run_sInnerMut(self, funcobj, arguments={}):
         # Dependencies
         resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         if 'POSITIONAL_ARGS' in arguments:
@@ -1020,6 +1037,7 @@ class FunctionCallMod(Module):
 
         console.log(f"[FunctionCallMod] {funcname}(...) from {cls}")
 
+        # sInnerMut is cursed, find an alternative?
         if type(funcobj) == sInnerMut:
             return self.run_sInnerMut(funcobj, arguments)
         elif cls is not None:
@@ -1156,7 +1174,7 @@ class ReturnMod(Module):
         v = resolution_module(tree["EXPRESSION"])
 
         self.compiler_instance.returns = v
-        self.compiler_instance.stop = True
+        self.compiler_instance.stop = True # This hard kills the compiler instance
         
 
 
@@ -1176,6 +1194,8 @@ class TarrowMod(Module):
             return self.compiler_instance.get_variable(tree["TO"])['object']
         elif tree["FROM"] in self.compiler_instance.variables:
             o = self.compiler_instance.get_variable(tree["FROM"])['object']
+            if type(o) == Nil:
+                raise TranspilerExceptions.Generic(f"Unable to find callable unit on a value of Nil. '{tree['FROM']}' was Nil\n::Information::\n'{self.compiler_instance.get_variable(tree['FROM'])}'")
             # print(tree["TO"], o.get_variable(tree["TO"]), self.compiler_instance.namespace)
             return Auto(o.get_variable(tree["TO"])['object'], 'basic').value
         else:
@@ -1334,6 +1354,8 @@ class MathMod(Module):
         def atomize(val):
             if type(val) == ID:
                 val = self.compiler_instance.get_variable(val.value)['object']
+            
+            val = Auto(val, "basic").value
             return val
         
         first = atomize(first)
@@ -1412,8 +1434,8 @@ class ConditionalMod(Module):
                     val = val.value
                 elif type(val) == Auto:
                     val = atomize(val.value)
-                else:
-                    print(type(val))
+                # else:
+                    # print(type(val))
                 return val
 
             first = atomize(first)
@@ -1448,7 +1470,7 @@ class BoolMod(Module):
         conditional_module: Module = self.compiler_instance.get_action('CONDITIONAL')
         empty: Module = self.compiler_instance.get_action('empty') # Actually a function
 
-        pprint(tree)
+        # pprint(tree)
         op = tree[0]
         first = tree[1]
         second = tree[2]
@@ -1599,6 +1621,31 @@ class InternalMod(Module):
     def namespace(self, line):
         return print(self.compiler_instance.namespace)
     
+    def debug(self, line):
+        echo: Module = self.compiler_instance.get_action('echo')
+        self.compiler_instance.finished.append(
+f"""
+ <table>
+  <tr>
+    <th>NoPHP Live Debug</th>
+  </tr>
+  <tr>
+    <td>Current Namespace</td>
+    <td>{self.compiler_instance.namespace}</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td>Variables</td>
+    {
+        '<br>'.join(
+            ["<tr><td>{}</td><td><pre><code>{}</code></pre></td></tr>".format(v, self.compiler_instance.get_variable(v)['object']) for v in self.compiler_instance.variables]
+            )
+    }
+  </tr>
+</table> 
+"""
+        )
+
     def die(self, line):
         self.compiler_instance.stop = True
     
@@ -1610,7 +1657,8 @@ class InternalMod(Module):
         calls = {
             "panic": self.panic,
             "nm": self.namespace,
-            "die": self.die
+            "die": self.die,
+            "debug": self.debug,
         }
 
         if value.value in calls:
