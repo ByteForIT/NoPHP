@@ -7,8 +7,7 @@
 
 [Official Website (WIP)](https://nophp.framer.website/) 
 | [Docs](https://testing.lonk.cloud/docs) 
-| [Speed (WIP)]() 
-| [Contributing & compiler design](https://github.com/vlang/v/blob/master/CONTRIBUTING.md)
+| [Speed (WIP)]()
 </div>
 
 > [!NOTE]
