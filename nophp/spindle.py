@@ -55,6 +55,7 @@ from .lang.std import (
     bcrypt,
     json,
     internal,
+    stripe,
 )
 
 # Read wool config
@@ -208,6 +209,9 @@ class SpindleApp:
             "substr": {
                 "run_func": string.SubstrMod(_c)
             },
+            "escape_str": {
+                "run_func": string.EscapeStrMod(_c)
+            },
             "nl2br": {
                 "run_func": string.Nl2BrMod(_c)
             },
@@ -226,6 +230,7 @@ class SpindleApp:
             **bcrypt.build_funcs(_c),
             **json.build_funcs(_c),
             **internal.build_funcs(_c),
+            **stripe.build_funcs(_c),
             
             "require_once": {
                 "run_func": RequireOnceMod(_c)

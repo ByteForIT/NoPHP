@@ -3,6 +3,8 @@ import inspect
 import pprint
 import re
 
+import markupsafe
+
 from .exceptions import ModuleExceptions, TranspilerExceptions, RuntimeExceptions, Warn
 from .module import Module
 from nophp.splitter import split_php
@@ -43,6 +45,7 @@ class ConcatMod(Module):
             String,
             Int32,
             Bool,
+            Float,
             Auto,
             Nil
         }
@@ -66,14 +69,14 @@ class ConcatMod(Module):
         if type(first_resolved) == ID:
             first_var: BasicType  = self.compiler_instance.get_variable(first_resolved.value)
 
-            if first_var["type"] not in [String, Int32, Bool, Auto, Nil]:
+            if first_var["type"] not in supported_types:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {first_var['type'].__name__}()")
             
             first_value = first_var["object"].value
         elif type(first_resolved) == String:
             first_value = first_resolved.value
-        elif type(first_resolved) ==  Int32:
+        elif type(first_resolved) == Int32 or type(first_resolved) == Float:
             first_value = f"\"{first_resolved.value}\""
         elif type(first_resolved) == Auto:
             first_value = first_resolved.value
@@ -83,17 +86,23 @@ class ConcatMod(Module):
         if type(second_resolved) == ID:
             second_var: BasicType  = self.compiler_instance.get_variable(second_resolved.value)
 
-            if second_var["type"] not in [String, Int32, Bool, Auto, Nil]:
+            if second_var["type"] not in supported_types:
                 # Invalid type
                 raise TranspilerExceptions.Generic(f"Expected an ID() of String() type, got {second_var['type'].__name__}()")
         
             second_value = second_var["object"].value
         elif type(second_resolved) == String:
             second_value = second_resolved.value
-        elif type(second_resolved) ==  Int32:
+        elif type(second_resolved) == Int32 or type(second_resolved) == Float:
             second_value = f"\"{second_resolved.value}\""
         elif type(second_resolved) == Auto:
             second_value = second_resolved.value
+
+        # TODO: Patch with exhaustive matching later
+        if second_value in NOPHP_TYPES:
+            second_value = second_value.value
+        if first_value in NOPHP_TYPES:
+            first_value = first_value.value
 
         return String(self.remove_quotes(first_value) + self.remove_quotes(second_value))
 
@@ -184,8 +193,8 @@ class HTMLMod(Module):
         self.tag = ""
         self.attrs = {}
         self.parser.feed(start)
-        print(self.tag)
-        print(self.attrs)
+        # print(self.tag)
+        # print(self.attrs)
         
         if self.attrs != {}:
             final = []
@@ -458,7 +467,7 @@ class GetIndexMod(Module):
         index = resolution_module(tree['INDEX'])
 
         # print(index)
-        # print(name)
+        # print(name, type(name))
 
         if type(index) == String:
             index_value = self.remove_quotes(index.value)
@@ -469,17 +478,25 @@ class GetIndexMod(Module):
             # print(var)
             if var['type'] == DynArray:
                 if 0 <= index_value < var['object'].length:
-                    return var['object'].value[index_value]
+                    return Auto(var['object'].value[index_value], "basic").value
                 else:
                     print(var['object'])
+                    print(f"DynArray does not contain {index_value}, it only contains: {list(var['object'].value)}")
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
             # DONE: Session and Request types need to be compatible with printing out in echo
             elif var['type'] == Session:
-                if index_value in var['object'].value:
+                # Rebuild
+                value = {}
+                for key, v in var['object'].value.items():
+                    if type(key) not in BASE_TYPES:
+                        value[self.remove_quotes(key.value) if type(key.value) == str else key.value] = v
+                    else:
+                        value[self.remove_quotes(key)] = v
+                if index_value in value:
                     # print("Session contains:",var['object'].value[index_value], type(var['object'].value[index_value]), var['object'].value)
-                    return Auto(var['object'].value[index_value], "basic")
+                    return Auto(value[index_value], "basic")
                 else:
-                    # print(f"Session does not contain {index_value}, it only contains: {list(var['object'].value.keys())}")
+                    print(f"Session does not contain {index_value}, it only contains: {list(value.keys())}")
                     return Nil()
             elif var['type'] == Request:
                 if index_value.lower() in var['object'].value.__dir__():
@@ -489,10 +506,17 @@ class GetIndexMod(Module):
                     # print("Request contains:",list(var['object'].value.__dir__()))
                     return Nil()
             elif var['type'] == Map:
-                if index_value in var['object'].value:
+                value = {}
+                for key, v in var['object'].value.items():
+                    if type(key) not in BASE_TYPES:
+                        value[self.remove_quotes(key.value) if type(key.value) == str else key.value] = v
+                    else:
+                        value[self.remove_quotes(key)] = v
+                if index_value in value:
                     print("Found mapping")
-                    return Auto(var['object'].value[index_value], "basic")
+                    return Auto(value[index_value], "basic")
                 else:
+                    print(f"Map does not contain {index_value}, it only contains: {list(value.keys())}")
                     return Nil()
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray, Session, Request], line)
@@ -504,22 +528,57 @@ class GetIndexMod(Module):
             # raise TranspilerExceptions.Generic(f"{name.value}")
         elif type(name) == Auto:
             # This is dumb but assume we got passed some internal object right?
+            if type(name.value) == markupsafe.Markup:
+                if str(name.value) != "":
+                    def add_quotes_if_missing(match):
+                        content = match.group(1)  # The content within the parentheses
+                        # Check if the content is already wrapped in double quotes
+                        if not (content.startswith('"') and content.endswith('"')) and not (content.startswith("'") and content.endswith("'")):
+                            return f'String("{content}")'  # Add quotes if they're missing
+                        else:
+                            return f'String({content})'  # Keep as is if quotes are present
+                    v = str(name.value)
+                    v = re.sub(r'String\(([^)]+)\)', add_quotes_if_missing, v)
+                    # print(v)
+                    try:
+                        name.value = eval(str(v)) # TODO: Oh god forgive me   
+                    except NameError as e:
+                        raise TranspilerExceptions.Generic(f"Failed to convert Markupsafe to a valid entity: {name.value}\nError: {e}")
+                else:
+                    return Nil()
             from werkzeug.datastructures import ImmutableMultiDict
             if type(name.value) == ImmutableMultiDict:
                 if index_value in name.value.to_dict():
                     return Auto(name.value.to_dict()[index_value], "basic")
                 else:
+                    print(f"ImmutableMultiDict does not contain {index_value}, it only contains: {list(name.value.to_dict())}")
+                    
                     # Not present
                     return Nil()
             elif type(name.value) == dict:
-                if index_value in name.value:
-                    return Auto(name.value[index_value], "basic")
+                # Rebuild
+                value = {}
+                for key, v in name.value.items():
+                    if type(key) not in BASE_TYPES:
+                        value[self.remove_quotes(key.value) if type(key.value) == str else key.value] = v
+                    else:
+                        value[self.remove_quotes(key)] = v
+                if index_value in value:
+                    return Auto(value[index_value], "basic")
                 else:
+                    print(f"dict does not contain {index_value}, it only contains: {list(value.keys())}")
                     return Nil()
             elif type(name.value) == Map:
-                if index_value in name.value.value:
-                    return Auto(name.value.value[index_value], "basic")
+                value = {}
+                for key, v in name.value.value.items():
+                    if type(key) not in BASE_TYPES:
+                        value[self.remove_quotes(key.value) if type(key.value) == str else key.value] = v
+                    else:
+                        value[self.remove_quotes(key)] = v
+                if index_value in value:
+                    return Auto(value[index_value], "basic")
                 else:
+                    print(f"Map does not contain {index_value}, it only contains: {list(value.keys())}")
                     return Nil()
             elif type(name.value) == DynArray:
                 if 0 <= index_value < name.value.length:
@@ -527,7 +586,8 @@ class GetIndexMod(Module):
                 else:
                     raise TranspilerExceptions.OutOfBounds(index_value, name.value.length)
             # raise TranspilerExceptions.Generic(f"Can't get index on {name.value}")
-            return Nil()
+            else:
+                raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor: {name.value}", type(name.value), [ID, DynArray, Map], line)
         elif type(name) == Nil:
             return Nil()
         else:
@@ -550,15 +610,37 @@ class SetIndexMod(Module):
         # exit()
         line = tree['ID'][-1]
         name = resolution_module(tree['ID'][1]['EXPRESSION'])
-        index = resolution_module(tree['ID'][1]['INDEX'])
+        index_value = resolution_module(tree['ID'][1]['INDEX'])
         value = resolution_module(tree['EXPRESSION'])
 
-        if type(index) == String:
-            index_value = self.remove_quotes(index.value)
-        else: index_value = index.value
+        while type(index_value) not in BASE_TYPES:
+            index_value = index_value.value
+            if type(index_value) == str:
+                index_value = self.remove_quotes(index_value)
+
 
         if type(value) == String:
             value = self.remove_quotes(value.value)
+
+        if type(name.value) == markupsafe.Markup:
+            if str(name.value) != "":
+                def add_quotes_if_missing(match):
+                    content = match.group(1)  # The content within the parentheses
+                    # Check if the content is already wrapped in quotes
+                    if not (content.startswith('"') and content.endswith('"')) and not (content.startswith("'") and content.endswith("'")):
+                        return f'String("{content}")'  # Add quotes if they're missing
+                    else:
+                        return f'String({content})'  # Keep as is if quotes are present
+                v = str(name.value)
+                v = re.sub(r'String\(([^)]+)\)', add_quotes_if_missing, v)
+                # print(v)
+                try:
+                    name.value = eval(str(v)) # TODO: Oh god forgive me   
+                except NameError as e:
+                    raise TranspilerExceptions.Generic(f"Failed to convert Markupsafe to a valid entity: {name.value}\nError: {e}")
+            else:
+                return Nil()
+    
         
 
         if type(name) == ID:
@@ -570,7 +652,7 @@ class SetIndexMod(Module):
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
             elif var['type'] == Session:
                 print("Session contains:",var['object'].value.get(index_value), type(var['object'].value.get(index_value)))
-                var['object'].value[index_value] = Auto(value, "basic").value
+                var['object'].value[index_value] = value # Auto(value, "basic").value
             else:
                 raise TranspilerExceptions.TypeMissmatch("Get ID Index Actor", var['type'], [ID, DynArray], line)
         elif type(name) == DynArray:
@@ -581,7 +663,7 @@ class SetIndexMod(Module):
             elif type(name.value) == Map:
                 name.value.value[index_value] = value
             else:
-                raise TranspilerExceptions.Generic(f"{name.value} is not a map.")
+                raise TranspilerExceptions.Generic(f"{name.value} of type {type(name.value)} is not a map.")
         else:
             raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor '{name}'", type(name), [ID, DynArray], line)
         
@@ -606,8 +688,11 @@ class ResolutionMod(Module):
             def replace(match):
                 variable_name = match.group(1)
                 value = self.compiler_instance.get_variable(variable_name)['object']
+
+                if type(value) in NOPHP_TYPES:
+                    value = value.value
                 
-                return str(self.safely_resolve(value.value))
+                return str(self.safely_resolve(value))
 
             result = pattern.sub(replace, text)
             return String(result)
@@ -1361,7 +1446,10 @@ class MathMod(Module):
         first = atomize(first)
         second = atomize(second)
 
-        return Int32(op(first, second))
+        try:
+            return Auto(op(first, second), "basic").value # This should now handle floats
+        except TypeError as e:
+            raise TranspilerExceptions.Generic(f"Failed to perform a mathematical operation:\n{e}\nFirst:{first}\nSecond:{second}")
 
 class ConditionalMod(Module):
     name="CONDITIONAL"
@@ -1560,11 +1648,15 @@ class ForEachMod(Module):
 
         if type(iterable) == ID:
             var = self.compiler_instance.get_variable(iterable.value)
+            if type(var['object']) == Auto:
+                var['object'] = var['object'].value
 
-            if var['type'] == DynArray:
+            if type(var['object']) == DynArray:
                 for value in var['object'].value:
                     # Inject value as the variable
                     
+                    # Automatically convert to a typed object
+                    value = Auto(value, "basic").value
 
                     instance = self.compiler_instance.new_instance(
                         tree=program,

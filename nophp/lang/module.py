@@ -94,6 +94,8 @@ class Module:
             value = self.remove_quotes(resolved.value)
         elif type(resolved) == Int32:
             value = resolved.value
+        elif type(resolved) == Float:
+            value = resolved.value
         elif type(resolved) == Bool:
             value = resolved.value
         elif type(resolved) == sInnerMut:
@@ -116,10 +118,15 @@ class Module:
                 value[
                     self.safely_resolve(key)
                 ] = self.safely_resolve(_value[key])
+
+        elif type(resolved) == Session:
+            value = resolved.value
                 
         # Legacy
         # Markup safe breaks this a bit...
-        elif type(resolved) in [int, str, list, tuple, float, markupsafe.Markup]:
+        elif type(resolved) == markupsafe.Markup:
+            value = resolved.unescape()
+        elif type(resolved) in [int, str, list, tuple, dict, float, markupsafe.Markup]:
             value = resolved
         elif type(resolved) == Auto:
             value = resolved.value
@@ -153,6 +160,8 @@ class Module:
         elif type(resolved) == String:
             value = resolved
         elif type(resolved) == Int32:
+            value = resolved
+        elif type(resolved) == Float:
             value = resolved
         elif type(resolved) == sInnerMut:
             value = func_module.run_sInnerMut(resolved)

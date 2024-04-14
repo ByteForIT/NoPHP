@@ -1,3 +1,4 @@
+from copy import deepcopy
 from ..exceptions import TranspilerExceptions, Warn
 from ..module import Module
 from ..types import *
@@ -87,15 +88,51 @@ class ArrayPushMod(CommonMod):
 
     def proc_tree(self, tree):
         array, value = self.base(tree, ref=True)[:2]
+        line = tree['ID'][-1]
 
+        if type(array) == Auto  :
+            array = array.value
+
+        if type(array) != DynArray:
+            raise TranspilerExceptions.TypeMissmatch("args[0]", type(array), DynArray, line) 
+        
         array.value.append(value)
 
-        return Bool(True)
+        print("array1212:", hash(array))
+
+        return array;
+
+
+# array_push_deep($array, $value)
+class ArrayPushDeepMod(CommonMod):
+    name="array_push_deep"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        array, value = self.base(tree, ref=True)[:2]
+        line = tree['ID'][-1]
+
+        if type(array) == Auto:
+            array = array.value
+
+        if type(array) != DynArray:
+            raise TranspilerExceptions.TypeMissmatch("args[0]", type(array), DynArray, line) 
+        
+        array.value.append(value)
+
+        print("array1212:", hash(array))
+
+        return array;
     
 _MODS = {
     "count": CountMod,
-    "ArrayMod": ArrayMod,
+    "array": ArrayMod,
     "array_push": ArrayPushMod,
+    "array_push_deep": ArrayPushDeepMod,
     "empty": EmptyMod
 }
 
