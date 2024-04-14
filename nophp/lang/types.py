@@ -1,4 +1,5 @@
 import json
+from markupsafe import Markup
 from werkzeug.datastructures import ImmutableMultiDict
 
 class BasicType:
@@ -20,9 +21,12 @@ class String(BasicType):
     Simple String type
     '''
     def __init__(self, value):
-        self.value = f'"{value}"'
+        self.value = f'{value}'
         self.length = len(value)
         super().__init__()
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}('{self.value}')"
 
 class ID(BasicType):
     '''
@@ -211,6 +215,7 @@ class Auto(BasicType):
                 None: Nil,
                 str: String,
                 int: Int32,
+                float: Float,
                 dict: Map,
                 list: DynArray,
                 tuple: DynArray,
@@ -314,5 +319,7 @@ BASE_TYPES = (
     list,
     int,
     tuple,
-    float
+    float,
+    dict,
+    Markup
 )

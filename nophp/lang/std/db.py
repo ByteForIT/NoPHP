@@ -71,6 +71,8 @@ class DbCommonMod(Module):
             value = []
             for i in _value:
                 value.append(self.safely_resolve(i)) 
+        elif type(value) == Float:
+            value = value.value
         return value
     
 

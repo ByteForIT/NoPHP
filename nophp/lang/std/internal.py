@@ -56,10 +56,49 @@ class NoPHPDie(CommonInternalMod):
     def proc_tree(self, tree):
         # Mirror functionality of INTERNAL_CALL(die)
         self.compiler_instance.stop = True
+
+
+# typeof($var)
+class NoPHPTypeOf(CommonInternalMod):
+    name="typeof"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        values = self.base(tree)
+        value = values[0]
+
+        return String(
+            str(type(value))
+        )
     
+
+# toInt($var)
+class NoPHPToInt(CommonInternalMod):
+    name="toInt"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        values = self.base(tree)
+        value = values[0]
+
+        return Int32(
+            value
+        )
+    
+
 _MODS = {
     "nophp_version": VersionInfo,
-    "die": NoPHPDie
+    "die": NoPHPDie,
+    "typeof": NoPHPTypeOf,
+    "toInt": NoPHPToInt,
 }
 
 def build_funcs(c):

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nophp"
-version = "0.1.8rc1"
+version = "0.1.8"
 description = "Not Only PHP - A backwards compatible language focused on modern features and flexibility."
 authors = ["Artur Z <doslunar8@gmail.com>"]
 readme = "README.md"
@@ -12,6 +12,7 @@ sly = "^0.5"
 rich = "^13.7.0"
 flask = "^3.0.0"
 bcrypt = "^4.1.2"
+stripe = "^8.8.0"
 
 [tool.poetry.scripts]
 nophp = "nophp.spindle:main"

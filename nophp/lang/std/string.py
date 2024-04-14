@@ -119,3 +119,26 @@ class SubstrMod(StrMod):
         result_str = subject_str[start:start+length] if length is not None else subject_str[start:]
         # print("res:",result_str, subject_str, start, length)
         return String(result_str)
+    
+
+
+class EscapeStrMod(StrMod):
+    name = "escape_str"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+
+    def proc_tree(self, tree):
+        values = self.base(tree)
+
+        if len(values) != 1:
+            raise TranspilerExceptions.IncorrectNumberOfValues(values, "escape_str()")
+
+        # Extract the values from the list
+        subject_str = self.remove_quotes(values[0])
+
+        if not isinstance(subject_str, str):
+            raise TranspilerExceptions.TypeMissmatch("substr()", "string", 0)
+
+        return String(subject_str.replace('"', '\\"'))

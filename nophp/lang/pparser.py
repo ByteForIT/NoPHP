@@ -1,3 +1,4 @@
+import itertools
 from sly import Parser
 from sly.yacc import YaccProduction, YaccSymbol
 import logging
@@ -223,6 +224,22 @@ class PyettyParser(Parser):
         ("left", COLON_COLON),
     )
 
+    def error(self, p):
+        if p:
+            print("Syntax error at token", p.type)
+            print(f"Line: {p.lineno}")
+            if hasattr(p, 'index'):
+                print(f"Position: {p.index}")
+            # Attempt to give context by printing surrounding tokens
+            print("Context (tokens around error):")
+            context_range = 5  # Number of tokens to show before/after the error
+            token_list = list(itertools.islice(self.tokens, max(0, p.index - context_range), p.index + context_range))
+            for tok in token_list:
+                print(f"  {tok.type} at line {tok.lineno}, position {tok.index}")
+        else:
+            print("Syntax error at EOF")
+        exit(0)
+
     # Program START
     @_("program statement")
     def program(self, p):
@@ -313,14 +330,6 @@ class PyettyParser(Parser):
     def statement(self, p):
         return p.expression
         
-
-    def error(self, p):
-        print("Whoa. You are seriously hosed.")
-        if not p:
-            print("End of File!")
-        else:
-            print("Failed at ", p)
-        exit(1)
 
     # Statements END
     ###########################################################################
