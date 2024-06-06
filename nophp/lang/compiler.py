@@ -225,12 +225,7 @@ class Compiler:
                     console.bell()
                     console.print(f"[red]({__file__.split('/')[-1]}:{action[-1]})\n\t({self.namespace})ERROR:[/red]", e)
                     rprint(
-                        Syntax(
-                            str(action) + '\nPrevious:\t'+ str(self.prev),
-                            "lisp",
-                            padding=1, 
-                            line_numbers=True
-                        )
+                        str(action) + '\nPrevious:\t'+ str(self.prev)
                     )
                     print("Stacktrace:")
                     parent = self.parent

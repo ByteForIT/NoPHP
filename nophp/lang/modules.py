@@ -822,8 +822,33 @@ class ClassDeclarationMod(Module):
 
     def proc_tree(self, tree):
         # pprint(tree)
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         extends = None
         source: list = []
+        uses: list = []
+
+        # Create a new instance, it will track the functions and variables in its namespace
+        instance = self.compiler_instance.new_instance(
+            namespace=tree['ID']
+        )
+
+        if "USES" in tree:
+            for use in tree["USES"]:
+                uses.append(resolution_module(use))
+
+        for use in uses:
+            print(f"Using {use}")
+            if use.value in self.compiler_instance.variables:
+                print(f"Loaded {use} as var")
+                instance.variables[use.value] = self.compiler_instance.variables[use.value]
+            elif use.value in self.compiler_instance.classes:
+                print(f"Loaded {use} as class")
+                instance.classes[use.value] = self.compiler_instance.classes[use.value]
+            elif use.value in self.compiler_instance.functions:
+                print(f"Loaded {use} as func")
+                instance.functions[use.value] = self.compiler_instance.functions[use.value]
+            else:
+                raise TranspilerExceptions.Generic(f"Unkown var {use}  passed into new scope of {tree['ID']} {self.compiler_instance.classes}")
 
         if "EXTENDS" in tree:
             # Check if the class exists
@@ -831,9 +856,6 @@ class ClassDeclarationMod(Module):
 
             if extends in self.compiler_instance.classes:
                 # Get tree of the class, then we copy its code
-                instance = self.compiler_instance.new_instance(
-                    namespace=tree['ID']
-                )
                 source = list(self.compiler_instance.classes[extends]["source"])
                 source.extend(tree['PROGRAM'])
                 instance.run(source)
@@ -842,14 +864,14 @@ class ClassDeclarationMod(Module):
                 raise TranspilerExceptions.ClassNotFound(extends)
 
         else:
-
             # Create a new instance, it will track the functions and variables in its namespace
-            instance = self.compiler_instance.new_instance(
-                namespace=tree['ID'],
-                tree=tree['PROGRAM']
-            )
+            # instance = self.compiler_instance.new_instance(
+            #     namespace=tree['ID'],
+            #     tree=tree['PROGRAM']
+            # )
             source = tree['PROGRAM']
-            instance.run()
+            # instance.run()
+            instance.run(tree['PROGRAM'])
 
         # Then Add this instance as a class template object, we can duplicate it later
         self.compiler_instance.create_class(
@@ -859,9 +881,10 @@ class ClassDeclarationMod(Module):
             parent=extends
         )
 
-        # print(
-        #     instance.variables.keys()
-        # )
+        print(
+            instance.namespace,
+            instance.classes.keys()
+        )
         # input('c')
 
         console.log("[ClassMod] New class & scope created for \"{}\" ({})".format(tree['ID'], instance))
@@ -888,14 +911,22 @@ class NewObjectMod(Module):
                     namespace=name.value[1] + "_obj",
                     sync="b"
                 )
+            # Inject classes that have been "used"
+            for _clas in clas['object'].classes:
+                obj.classes[_clas] = clas['object'].classes[_clas]
             obj.run(clas['source'])
         elif name.value in self.compiler_instance.classes:
+            clas = self.compiler_instance.classes[name.value]
             obj = self.compiler_instance.new_instance(
                     namespace=name.value + "_obj",
                     sync="b"
                 )
-            obj.run(self.compiler_instance.classes[name.value]["source"])
+            # Inject classes that have been "used"
+            for _clas in clas['object'].classes:
+                obj.classes[_clas] = clas['object'].classes[_clas]
+            obj.run(clas["source"])
         else:
+            print(self.compiler_instance.namespace, self.compiler_instance.classes.keys())
             raise TranspilerExceptions.ClassNotFound(name)
 
         # Call it's constructor

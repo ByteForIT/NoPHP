@@ -31,7 +31,7 @@ class CommonMod(Module):
         return values
     
 
-
+# TODO: What is this for??? it's been a month since I wrote this??
 # set_session($key, $value) -> <remembers value for the session>
 class SetSessionMod(CommonMod):
     name="set_session"

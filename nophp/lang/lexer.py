@@ -64,6 +64,7 @@ class PyettyLexer(Lexer):
         # TEXT
         EXTENDS,
         ATTR_LEVEL,
+        USING,
     }
     literals = {
         "+",
@@ -145,6 +146,7 @@ class PyettyLexer(Lexer):
     ID["from"] = FROM
     ID["_init"] = INIT
     ID["new"] = NEW
+    ID["using"] = USING
     ATTR_LEVEL = r'(public|private|protected)'
     # TEXT = r'>\s*([^<>\s]+)\s*'
     # HTMLSTRING = r'[\s\S]+?'

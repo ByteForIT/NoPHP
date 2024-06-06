@@ -159,14 +159,22 @@ echo "<br>" . Example\greet(2000);
 echo "<br>" . Example\greet(1000);
 
 // Try to fix function scope issues
+class TestClass {
+    public function test() : int {
+        return 2;
+    }
+}
+class HelloWorld [TestClass] {
+    $test = new TestClass();
 
-class HelloWorld {
     public function run() : string {
         return <h1>"Hello, World!"</h1>;
     }
 
     public function displayOutput() {
-        echo $this->run();
+        if ($test->test() == 2) {
+            echo $this->run();
+        }
     }
 }
 
