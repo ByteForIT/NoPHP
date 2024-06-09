@@ -314,9 +314,10 @@ class Compiler:
         parent = None,
         force = False
     ) -> None:
-        if name in self.classes and not force:
-            print(f"At {self.line}")
-            raise TranspilerExceptions.ClassExists(name, clss=self.classes)
+        # TODO: I don't think this is necessary
+        # if name in self.classes and not force:
+        #     print(f"At {self.line}")
+        #     raise TranspilerExceptions.ClassExists(name, clss=self.classes)
         
         obj.parent = parent
         

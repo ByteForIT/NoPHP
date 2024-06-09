@@ -756,6 +756,10 @@ class PyettyParser(Parser):
     @_("CLASS ID EXTENDS ID '{' program '}'")
     def class_declaration(self, p):
         return ("CLASS_DECLARATION", {"ID": p.ID0, "EXTENDS": p.ID1, "PROGRAM": p.program}, p.lineno)    
+    
+    @_("CLASS ID EXTENDS ID '[' positional_args ']' '{' program '}'")
+    def class_declaration(self, p):
+        return ("CLASS_DECLARATION", {"ID": p.ID0, "EXTENDS": p.ID1, "USES": p.positional_args, "PROGRAM": p.program}, p.lineno)    
 
     @_("NAMESPACE ID '{' program '}'")
     def class_declaration(self, p):

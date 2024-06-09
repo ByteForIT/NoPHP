@@ -53,6 +53,7 @@ class JSONEncodeMod(CommonJSONMod):
         # i.e. getters.
         attrs = {}
         obj = values[0] 
+        print(f"Encoding: {obj}")
         if type(obj) == Compiler:
             for func in obj.functions:
                 if func[:3].lower() == 'get':
