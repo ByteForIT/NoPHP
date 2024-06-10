@@ -92,13 +92,26 @@ class NoPHPToInt(CommonInternalMod):
         return Int32(
             value
         )
-    
+
+class NoPHPTemplate(CommonInternalMod):
+    name="template"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        require = self.compiler_instance.get_action("REQUIRE_ONCE")
+        require(tree)
+        
 
 _MODS = {
     "nophp_version": VersionInfo,
     "die": NoPHPDie,
     "typeof": NoPHPTypeOf,
     "toInt": NoPHPToInt,
+    "template": NoPHPTemplate
 }
 
 def build_funcs(c):
