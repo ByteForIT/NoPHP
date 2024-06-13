@@ -98,10 +98,11 @@ class ConcatMod(Module):
         elif type(second_resolved) == Auto:
             second_value = second_resolved.value
 
-        # TODO: Patch with exhaustive matching later
-        if second_value in NOPHP_TYPES:
+        # TODO: Patch with "sane" exhaustive matching later
+        while type(second_value) in NOPHP_TYPES:
             second_value = second_value.value
-        if first_value in NOPHP_TYPES:
+
+        while type(first_value) in NOPHP_TYPES:
             first_value = first_value.value
 
         return String(self.remove_quotes(first_value) + self.remove_quotes(second_value))
@@ -292,6 +293,9 @@ class UseMod(Module):
         Warn("Use is obsolete in NoPHP, the namespace was autoloaded, skipping.")
 
 class RequireOnceMod(Module):
+    """
+    This is legacy now and should get a rework.
+    """
     name="REQUIRE_ONCE"
     type = Module.MODULE_TYPES.NON_WRITEABLE
 
@@ -326,6 +330,9 @@ class RequireOnceMod(Module):
             elif type(resolved) == String:
                 value = self.remove_quotes(resolved.value)
             
+            # TODO: Legacy failsafe
+            if type(value) == String:
+                value = self.remove_quotes(value.value)
 
             values.append(value) 
 
@@ -341,6 +348,7 @@ class RequireOnceMod(Module):
             tokens = parser.parse(
                 lexer.tokenize(php)
             )
+            self.compiler_instance.finished.append(html)
 
 
         old_nm = self.compiler_instance.namespace
@@ -471,7 +479,19 @@ class GetIndexMod(Module):
 
         if type(index) == String:
             index_value = self.remove_quotes(index.value)
+        elif type(index) == ID:
+            index_value = self.compiler_instance.get_variable(index.value)['object']
+            print("IndexOBJ:",index_value)
+            if type(index_value) == Auto: # Fucking auto istg
+                index_value = index_value.value
+                print("HandledAuto:",index_value)
+            if type(index_value) == String:
+                index_value = self.remove_quotes(index_value.value)
+                print("HandledString:",index_value)
+            else:
+                index_value = index_value.value
         else: index_value = index.value
+
 
         if type(name) == ID:
             var = self.compiler_instance.get_variable(name.value)
@@ -590,8 +610,21 @@ class GetIndexMod(Module):
                 raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor: {name.value}", type(name.value), [ID, DynArray, Map], line)
         elif type(name) == Nil:
             return Nil()
+        elif type(name) == Map:
+                value = {}
+                for key, v in name.value.items():
+                    if type(key) not in BASE_TYPES:
+                        value[self.remove_quotes(key.value) if type(key.value) == str else key.value] = v
+                    else:
+                        value[self.remove_quotes(key)] = v
+                if index_value in value:
+                    print("Found mapping")
+                    return Auto(value[index_value], "basic")
+                else:
+                    print(f"Map does not contain {index_value}, it only contains: {list(value.keys())}")
+                    return Nil()
         else:
-            raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor: {name}", type(name), [ID, DynArray], line)
+            raise TranspilerExceptions.TypeMissmatch(f"Get Index Actor: {name}", type(name), [ID, DynArray, Map, Auto], line)
         return Nil()
 
 class SetIndexMod(Module):
@@ -614,6 +647,8 @@ class SetIndexMod(Module):
         value = resolution_module(tree['EXPRESSION'])
 
         while type(index_value) not in BASE_TYPES:
+            if type(index_value) == ID:
+                index_value = self.compiler_instance.get_variable(index_value.value)["object"]
             index_value = index_value.value
             if type(index_value) == str:
                 index_value = self.remove_quotes(index_value)
@@ -641,7 +676,8 @@ class SetIndexMod(Module):
             else:
                 return Nil()
     
-        
+        while type(value) == ID: # TODO: Why should we keep this while?
+            value = self.compiler_instance.get_variable(value.value)['object']
 
         if type(name) == ID:
             var = self.compiler_instance.get_variable(name.value)
@@ -650,6 +686,9 @@ class SetIndexMod(Module):
                     var['object'].value[index_value] = value
                 else:
                     raise TranspilerExceptions.OutOfBounds(index_value, var['object'].length)
+            elif var['type'] == Map:
+                print(index_value, value, var)
+                var['object'].value[index_value] = value
             elif var['type'] == Session:
                 print("Session contains:",var['object'].value.get(index_value), type(var['object'].value.get(index_value)))
                 var['object'].value[index_value] = value # Auto(value, "basic").value
@@ -822,8 +861,33 @@ class ClassDeclarationMod(Module):
 
     def proc_tree(self, tree):
         # pprint(tree)
+        resolution_module: Module = self.compiler_instance.get_action('RESOLUT')
         extends = None
         source: list = []
+        uses: list = []
+
+        # Create a new instance, it will track the functions and variables in its namespace
+        instance = self.compiler_instance.new_instance(
+            namespace=tree['ID']
+        )
+
+        if "USES" in tree:
+            for use in tree["USES"]:
+                uses.append(resolution_module(use))
+
+        for use in uses:
+            print(f"Using {use}")
+            if use.value in self.compiler_instance.variables:
+                print(f"Loaded {use} as var")
+                instance.variables[use.value] = self.compiler_instance.variables[use.value]
+            elif use.value in self.compiler_instance.classes:
+                print(f"Loaded {use} as class")
+                instance.classes[use.value] = self.compiler_instance.classes[use.value]
+            elif use.value in self.compiler_instance.functions:
+                print(f"Loaded {use} as func")
+                instance.functions[use.value] = self.compiler_instance.functions[use.value]
+            else:
+                raise TranspilerExceptions.Generic(f"Unkown var {use}  passed into new scope of {tree['ID']} {self.compiler_instance.classes}")
 
         if "EXTENDS" in tree:
             # Check if the class exists
@@ -831,9 +895,6 @@ class ClassDeclarationMod(Module):
 
             if extends in self.compiler_instance.classes:
                 # Get tree of the class, then we copy its code
-                instance = self.compiler_instance.new_instance(
-                    namespace=tree['ID']
-                )
                 source = list(self.compiler_instance.classes[extends]["source"])
                 source.extend(tree['PROGRAM'])
                 instance.run(source)
@@ -842,14 +903,14 @@ class ClassDeclarationMod(Module):
                 raise TranspilerExceptions.ClassNotFound(extends)
 
         else:
-
             # Create a new instance, it will track the functions and variables in its namespace
-            instance = self.compiler_instance.new_instance(
-                namespace=tree['ID'],
-                tree=tree['PROGRAM']
-            )
+            # instance = self.compiler_instance.new_instance(
+            #     namespace=tree['ID'],
+            #     tree=tree['PROGRAM']
+            # )
             source = tree['PROGRAM']
-            instance.run()
+            # instance.run()
+            instance.run(tree['PROGRAM'])
 
         # Then Add this instance as a class template object, we can duplicate it later
         self.compiler_instance.create_class(
@@ -859,9 +920,10 @@ class ClassDeclarationMod(Module):
             parent=extends
         )
 
-        # print(
-        #     instance.variables.keys()
-        # )
+        print(
+            instance.namespace,
+            instance.classes.keys()
+        )
         # input('c')
 
         console.log("[ClassMod] New class & scope created for \"{}\" ({})".format(tree['ID'], instance))
@@ -888,14 +950,22 @@ class NewObjectMod(Module):
                     namespace=name.value[1] + "_obj",
                     sync="b"
                 )
+            # Inject classes that have been "used"
+            for _clas in clas['object'].classes:
+                obj.classes[_clas] = clas['object'].classes[_clas]
             obj.run(clas['source'])
         elif name.value in self.compiler_instance.classes:
+            clas = self.compiler_instance.classes[name.value]
             obj = self.compiler_instance.new_instance(
                     namespace=name.value + "_obj",
                     sync="b"
                 )
-            obj.run(self.compiler_instance.classes[name.value]["source"])
+            # Inject classes that have been "used"
+            for _clas in clas['object'].classes:
+                obj.classes[_clas] = clas['object'].classes[_clas]
+            obj.run(clas["source"])
         else:
+            print(self.compiler_instance.namespace, self.compiler_instance.classes.keys())
             raise TranspilerExceptions.ClassNotFound(name)
 
         # Call it's constructor
@@ -1207,6 +1277,47 @@ class FunctionCallMod(Module):
                         done = ret
                 else:
                     raise TranspilerExceptions.UnkownMethodReference(funcname, list(self.compiler_instance.variables[cls]['object'].functions.keys()), ns=self.compiler_instance.variables[cls]['object'].namespace)
+
+            elif cls in self.compiler_instance.classes:
+                if funcname in self.compiler_instance.classes[cls]['object'].functions:
+                    funcobj = self.compiler_instance.classes[cls]['object'].functions[funcname]
+                    
+                    for i, arg in enumerate(self.compiler_instance.classes[cls]['object'].functions[funcname]["arguments"]):
+                        try:
+                            v = parsed_args[i]
+                        except IndexError as e:
+                            raise TranspilerExceptions.OutOfBounds(i, len(self.compiler_instance.classes[cls]['object'].functions[funcname]["arguments"]))
+
+                        self.compiler_instance.classes[cls]['object'].functions[funcname]["object"].create_variable(
+                            arg.value, 
+                            type(v),
+                            v,
+                            force=True
+                        )
+                    # TODO: REMOVE
+                    # print(self.compiler_instance.classes[cls]['object'].functions[funcname]["object"].namespace ,self.compiler_instance.classes[cls]['object'].functions[funcname]["object"].classes)
+                    func = self.compiler_instance.classes[cls]['object'].functions[funcname]["run_func"]
+                    # TODO: Check permission level
+                    func()
+                    self.compiler_instance.write_back(
+                        self.compiler_instance.classes[cls]['object'].functions[funcname]['object']
+                    )
+                    ret = self.compiler_instance.classes[cls]['object'].functions[funcname]['object'].returns
+                    exp = self.compiler_instance.classes[cls]['object'].functions[funcname]['returns']
+                    # TODO: REMOVE
+                    # print(funcname, ret)
+                    if ret != Nil:
+                        if type(ret) == ID:
+                            # print(list(self.compiler_instance.classes[cls]['object'].functions[funcname]['object'].classes.keys()))
+                            # input("vars.")
+                            ret = self.compiler_instance.classes[cls]['object'].functions[funcname]['object'].get_variable(ret.value)['object']
+                        if type(ret) != exp and exp != Any:
+                            raise TranspilerExceptions.TypeMissmatchNL(f"{funcname}(...) return value", ret, exp)
+                        done = ret
+                else:
+                    raise TranspilerExceptions.UnkownMethodReference(funcname, list(self.compiler_instance.classes[cls]['object'].functions.keys()), ns=self.compiler_instance.classes[cls]['object'].namespace)
+
+
             else:
                 raise TranspilerExceptions.ClassNotFound(cls)
             
@@ -1282,6 +1393,14 @@ class TarrowMod(Module):
             if type(o) == Nil:
                 raise TranspilerExceptions.Generic(f"Unable to find callable unit on a value of Nil. '{tree['FROM']}' was Nil\n::Information::\n'{self.compiler_instance.get_variable(tree['FROM'])}'")
             # print(tree["TO"], o.get_variable(tree["TO"]), self.compiler_instance.namespace)
+            return Auto(o.get_variable(tree["TO"])['object'], 'basic').value
+        
+        # For classes that don't require initialization or construction
+        elif tree["FROM"] in self.compiler_instance.classes:
+            o = self.compiler_instance.classes[tree["FROM"]]['object']
+            if type(o) == Nil:
+                raise TranspilerExceptions.Generic(f"Unable to find callable unit on a value of Nil. '{tree['FROM']}' was Nil\n::Information::\n'{self.compiler_instance.get_variable(tree['FROM'])}'")
+
             return Auto(o.get_variable(tree["TO"])['object'], 'basic').value
         else:
             raise TranspilerExceptions.NotImplemented
@@ -1531,7 +1650,7 @@ class ConditionalMod(Module):
 
             # Evaluate condition and run it's code
             c = condition(first, second)
-            # print(c, self.remove_quotes(first), self.remove_quotes(second), if_condition[0])
+            print(c, first, second, if_condition[0])
         else:
             c = condition(if_condition[1])
             # print(c)

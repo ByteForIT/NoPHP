@@ -61,6 +61,23 @@ class EmptyMod(CommonMod):
         emptiness = value is None or value == "" or value == [] or value == {} or value == set()
 
         return Bool(emptiness)
+    
+
+class ExistsMod(CommonMod):
+    name="exists"
+    type = Module.MODULE_TYPES.FUNCTION
+
+    def __init__(self, compiler_instance):
+        super().__init__(compiler_instance)
+        self.compiler_instance = compiler_instance
+
+    def proc_tree(self, tree):
+        value = self.base(tree)[0]
+
+        # print(value)
+
+        return Bool(value in self.compiler_instance.variables)
+
 
 # For arrays
 # array()
@@ -133,7 +150,8 @@ _MODS = {
     "array": ArrayMod,
     "array_push": ArrayPushMod,
     "array_push_deep": ArrayPushDeepMod,
-    "empty": EmptyMod
+    "empty": EmptyMod,
+    "exists": ExistsMod,
 }
 
 def build_funcs(c):

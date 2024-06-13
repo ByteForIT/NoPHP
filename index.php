@@ -45,7 +45,7 @@ echo $HEAD;
 echo $NAVBAR;
 
 // Body
-$greeting = Example/greet();
+$greeting = Example/greet(1);
 
 echo 
 <body class=$BODY_PADDING>

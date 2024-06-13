@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nophp"
-version = "0.1.8"
+version = "0.1.9rc1"
 description = "Not Only PHP - A backwards compatible language focused on modern features and flexibility."
 authors = ["Artur Z <doslunar8@gmail.com>"]
 readme = "README.md"

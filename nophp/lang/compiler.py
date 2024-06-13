@@ -225,12 +225,7 @@ class Compiler:
                     console.bell()
                     console.print(f"[red]({__file__.split('/')[-1]}:{action[-1]})\n\t({self.namespace})ERROR:[/red]", e)
                     rprint(
-                        Syntax(
-                            str(action) + '\nPrevious:\t'+ str(self.prev),
-                            "lisp",
-                            padding=1, 
-                            line_numbers=True
-                        )
+                        str(action) + '\nPrevious:\t'+ str(self.prev)
                     )
                     print("Stacktrace:")
                     parent = self.parent
@@ -319,9 +314,10 @@ class Compiler:
         parent = None,
         force = False
     ) -> None:
-        if name in self.classes and not force:
-            print(f"At {self.line}")
-            raise TranspilerExceptions.ClassExists(name, clss=self.classes)
+        # TODO: I don't think this is necessary
+        # if name in self.classes and not force:
+        #     print(f"At {self.line}")
+        #     raise TranspilerExceptions.ClassExists(name, clss=self.classes)
         
         obj.parent = parent
         
